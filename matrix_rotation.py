@@ -58,18 +58,3 @@ class Rotation:
         
         #turned out to be useless
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
