@@ -60,7 +60,7 @@ class Transducers:
             inside = r < self.radius 
             
             height = np.zeros(len(x[inside]))
-            height[:] += self.z
+            #height[:] += self.z
             transducer_i_x.append(x[inside])
             transducer_i_y.append(y[inside])
             transducer_i_z.append(height)
