@@ -31,6 +31,10 @@ class Transducers:
     def transducer_angle(self, tr):
         angle = 2 * np.pi / (tr)
         return angle
+    
+    # returns mesh (x,y,z) coordinates of all of the transducers in one ring
+    # coordinate][number of transducer]
+    # 0 = x, 1 = y, 2=z
     def transducer(self):  # 3D
         #create a square mesh and only pick values that are in circle
         #holds x and y values of transducer meshes
@@ -96,16 +100,13 @@ N = [6,12,18]
 for n in N:
     
     all_t = Transducers(n, 5, 0, 50, 0)
-
     all_t = all_t.transducer()
-    #[0 = x, 1 = y][transducer_i]
+    #[0 = x, 1 = y, 2=z][transducer_i]
     x = all_t[0][0]  
     y = all_t[1][0]  
-
     
     for i in range(n):  
         ax.scatter(all_t[0][i], all_t[1][i]) 
-
 plt.show()  
 '''
 '''
@@ -120,3 +121,10 @@ ax.scatter(x, y)
 plt.show()
 '''
 
+
+
+
+
+
+
+print("transducers_ring - Done.")
