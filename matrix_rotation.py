@@ -10,9 +10,9 @@ class Rotation:
     
     #need to rotate each of the transducers in ring 1 then 2 then 3 
     #assuming theta is in radians and not degrees ( I mean who uses degrees right) .... right?
-    def angle_from_zmiddle(self, radius_transducer_i):
-        angle_from_z = np.arctan(radius_transducer_i / self.z_middle)
-        return angle_from_z
+    #def angle_from_zmiddle(self, radius_transducer_i):
+    #    angle_from_z = np.arctan(radius_transducer_i / self.z_middle)
+    #    return angle_from_z
     
     #xyz = [transducer[0][0], transducer[1][0], transducer[2][0]] #how to define xyz of transducer_i
     def rotation_x(self, array, theta):
@@ -42,6 +42,7 @@ class Rotation:
         
         zrot_array = np.matmul(rz, array)
         return zrot_array
+    
     def rotation_u(self, xc, yc, zc, array, theta): 
         #input same y and negative x for first quadrant
         ru = np.ndarray(shape = (3,3), dtype = float)
@@ -57,4 +58,19 @@ class Rotation:
         return np.matmul(ru, array)
         
         #turned out to be useless
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
