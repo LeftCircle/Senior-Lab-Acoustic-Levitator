@@ -10,14 +10,14 @@ from mpl_toolkits.mplot3d import Axes3D
 # mesh of measurement points in between the transducer rings
 class M_mesh:
     def __init__(self, radius_largest_ring, h_largest_ring, z_middle, m_mesh_n
-                 , quarter):
+                 , half):
         self.radius_largest_ring = radius_largest_ring
         self.m_mesh_n = m_mesh_n #meshpoints on one axis of rectangle defining mesh between top and bottom transducers
         self.h_largest_ring = h_largest_ring
         self.z_middle = z_middle
-        self.quarter = quarter #1 for true, 0 for false
+        self.half = half #1 for true, 0 for false
     def m_mesh(self):
-        if self.quarter == 1:
+        if self.half == 1:
             mesh = 3 * self.m_mesh_n
             x_start = -self.radius_largest_ring
             x_end   = 0 #might want to do -0.01 but who knows
