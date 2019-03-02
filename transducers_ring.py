@@ -100,7 +100,7 @@ class Transducers:
         return transducer_i_x, transducer_i_y, transducer_i_z
     
 
-
+#Transducers(1, 5, 11).ring_points()
 
 #for testing    
 #how to access data :
