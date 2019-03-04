@@ -10,26 +10,27 @@ from mpl_toolkits.mplot3d import Axes3D
 # mesh of measurement points in between the transducer rings
 class M_mesh:
     def __init__(self, radius_largest_ring, h_largest_ring, z_middle, m_mesh_n
-                 , half):
+                 , half, t_radius):
         self.radius_largest_ring = radius_largest_ring
         self.m_mesh_n = m_mesh_n #meshpoints on one axis of rectangle defining mesh between top and bottom transducers
         self.h_largest_ring = h_largest_ring
         self.z_middle = z_middle
         self.half = half #1 for true, 0 for false
+        self.t_radius = t_radius #radius of one transducer
     def m_mesh(self):
         if self.half == 1:
-            mesh = 3 * self.m_mesh_n
+            h_m_mesh_n = 2 * self.m_mesh_n
             x_start = -self.radius_largest_ring
             x_end   = 0 #might want to do -0.01 but who knows
-            x = np.linspace(x_start, x_end, mesh)  #finer mesh b/c less points
+            x = np.linspace(x_start, x_end, h_m_mesh_n)  #finer mesh b/c less points
             
-            y = np.zeros(mesh)
+            y = np.zeros(h_m_mesh_n)
             
             #x, y = np.meshgrid(x, y)
             
-            z_start = self.h_largest_ring + 6 #plus 6 ensures not touching mesh transducers
-            z_end   = 2 * self.z_middle - self.h_largest_ring - 6
-            z = np.linspace(z_start, z_end, mesh)
+            z_start = self.h_largest_ring + (self.t_radius + 1)#plus 6 ensures not touching mesh transducers
+            z_end   = 2 * self.z_middle - (self.t_radius + 1)
+            z = np.linspace(z_start, z_end, h_m_mesh_n)
             
             # arrays of 3-D mesh points
             x_array = []

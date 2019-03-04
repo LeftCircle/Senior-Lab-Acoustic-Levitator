@@ -9,12 +9,17 @@ import measurement_mesh
 from mpl_toolkits.mplot3d import Axes3D
 
 class Matrix_method:
+    # params:
+    #   frequency, wave propogation velocity, displacement amplitude, 
+    #   number of points in transducer mesh, radius of transducer, 
+    #   excitation phase of displacement, density of propogating medium, 
+    #   wavelength of emitted sound
     def __init__(self, omega, c, amplitude, t_meshN, t_radius, 
                  excitation_phase_n, density, wavelength):
         self.omega = omega #anglular freq???
         self.c = c
         self.amplitude = amplitude # amplitude of displacement
-        self.t_meshN = t_meshN
+        self.t_meshN = t_meshN 
         self.t_radius = t_radius
         self.excitation_phase_n = excitation_phase_n # phase of displacement 
         self.density = density
@@ -43,7 +48,7 @@ class Matrix_method:
     
     #notation is bad again. both n and t represent transisters
     def sn(self): #radius of transducer cell
-        return(self.t_radius / self.t_meshN)**2
+        return(2 * self.t_radius / self.t_meshN)**2
     
     # calculates distance between transducer points (n,t) and measurement points (m)
     # t_points, m_points are 2-D arrays of x,y,z points
@@ -61,27 +66,30 @@ class Matrix_method:
     # element of transfer matrix between transducer points (n) and measurement points (m)
     def t_nm(self, r_nm): #t_nm^TM from matrix method paper
         k = self.omega / self.c
-        # I think sqrt(-1) = 1j
-        return self.sn() * (np.exp(-1j*k*r_nm)) / r_nm
+        # I think sqrt(-1) = 1.j
+        return self.sn() * (np.exp(-1.j*k*r_nm)) / r_nm
     
-    # element of displacement of each cell s_n
+    # calculates displacement of each cell s_n due to oscillation from sound waves
     def u_n(self):
-        return self.amplitude * np.exp(1j * self.excitation_phase_n) 
+        return self.amplitude * np.exp(1.j * self.excitation_phase_n) 
         
     # transfer matrix between transducer points (n) and measurement points (m)
     def t_matrix(self, t_points, m_points):
         m_length = len(m_points[0]) ; t_length = len(t_points[0])
-        print(m_length, 'm_length', t_length, 't_length')
+        
+        #print(m_length, 'm_length', t_length, 't_length')
+        
         t_m = np.zeros([m_length, t_length], dtype=complex) #m rows, t collumns
         r_nm = self.r_nm_m(t_points, m_points)
+        
         for i in range(m_length): #may not be the most efficient method
             for k in range(t_length): #don't use j bc imaginary numbers
-                t_m[i, k] = self.t_nm(r_nm[i][k]) #-> we are losing the imaginary values here
+                t_m[i, k] = self.t_nm(r_nm[i][k]) 
                 
                 #potentially make everything a complex number to account for it?
         return t_m
     
-    # displacement matrix
+    # assembles displacement matrix
     def u_matrix(self, t_points):
         t_length = len(t_points[0])
         print(t_length, 't_length')
@@ -91,12 +99,19 @@ class Matrix_method:
         return u_mat
             
     # pressure matrix at measurement points (m)
+    # here t_mat is the transfer matrix (not transducers)
     def p_matrix(self, t_mat, u_mat):
         
-        p_prefactor = self.omega * self.rho * self.c / self.lambda
+        p_prefactor = self.omega * self.density * self.c / self.wavelength
         
-        # WANT:
-        # p_prefactor * matrix multiplication of t_mat and u_mat
+        # TEST 
+        # print sizes of t and u matrices to ensure they can be multplied
+        # print("Pressure Calculation")
+        # print("T Matrix: " + str(np.shape(t_mat)))
+        # print("U Matrix: " + str(np.shape(u_mat)))
+        
+        return p_prefactor * np.matmul(t_mat, u_mat) * 1.e-3 # (to convert the mm to m, giving the result in units of Pascals)
+        
         
         
 
@@ -115,3 +130,4 @@ class Matrix_method:
 
 
 
+print("matrix_method - Done.")

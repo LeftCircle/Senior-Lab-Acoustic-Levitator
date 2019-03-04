@@ -118,7 +118,7 @@ transducers_ring.Transducers(input).ring_points()
 
 p = np.zeros([Ntot,3,])
 '''
-'''
+
 # create figure for plotting
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -129,13 +129,15 @@ ax.set_zlim3d(-5, 210)
 
 
 Rsphere = 0.
-
+N = [6,12,18,6,12,18]
+Z = [5, 15, 25, 195, 185, 175]
+number_of_mesh_points = 10
 for i in range(len(N)):
-    rot = Rotated_mesh(N[i], 100, Z[i] , 15., number_of_mesh_points)
+    rot = Rotated_mesh(N[i], 100, Z[i] , number_of_mesh_points)
     mesh = rot.rotated_mesh()
 
-    if i == 0:
-        Rsphere = rot.radius_sphere()
+    #if i == 0:
+        #Rsphere = rot.radius_sphere()
     
     for i in range(N[i]):
         x = mesh[i][0]
@@ -143,7 +145,7 @@ for i in range(len(N)):
         z = mesh[i][2]
         ax.scatter(x, y, z)
 #plt.show()
-'''
+
 
 #print(Rsphere)
 
