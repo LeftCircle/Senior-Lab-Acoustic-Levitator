@@ -51,15 +51,13 @@ ntr_half = [6,12,18]
 
 
 #initializing graph
-def graph():
-    g = False
-    if g == True:
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.set_xlim3d(-100, 100)
-        ax.set_ylim3d(-100, 100)
-        ax.set_zlim3d(0, 200)
-graph()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.set_xlim3d(-100, 100)
+ax.set_ylim3d(-100, 100)
+ax.set_zlim3d(0, 200)
+
 # Accessing the data:
 #    - how to output specific x, y, z components from the mesh
 
@@ -129,11 +127,11 @@ def half_mesh_t():
 def half_mesh_m():
     x = [] ; y = [] ; z = []
     m_mesh = measurement_mesh.M_mesh(radius_largest_ring, h_i[2], z_middle,
-                                     int(1.5 * meshN), 1, t_radius).m_mesh()
+                                     int(1.5 * meshN), 2, t_radius).m_mesh()
 
     for i in range(len(m_mesh[0][0])):
         if i == 1:
-            print(len(m_mesh[0][1]))
+            print(len(m_mesh[0][1]), i, 'len m_mesh  in half mesh for i == 1') #prints twice?
         x.append(m_mesh[0][i]) 
         y.append(m_mesh[1][i])
         z.append(m_mesh[2][i])
@@ -141,24 +139,27 @@ def half_mesh_m():
     # return np.array([x,y,z])
     # return x,y,z
     return np.concatenate(x), np.concatenate(y), np.concatenate(z)
+    
+    # return np.array([x,y,z])
+    # return x,y,z
+    return np.concatenate(x), np.concatenate(y), np.concatenate(z)
 
-half_mesh_m()        
-print(len(half_mesh_m()[0]))
-print(len(half_mesh_m()[1]))
-print(len(half_mesh_m()[2]))
-'''
+
+
 xyz_t = half_mesh_t()
 ax.scatter(xyz_t[0], xyz_t[1], xyz_t[2])
 xyz = half_mesh_m()
 ax.scatter(xyz[0], xyz[1], xyz[2])
 py.show()
-'''
+
 
 
 #testing matrix method things using half mesh
 xyz_t = half_mesh_t()
 xyz_m = half_mesh_m()
-
+print(len(xyz_m[0]), 'half mesh x')
+print(len(xyz_m[1]), 'half mesh y')
+print(len(xyz_m[2]), 'half mesh z')
 
 #xyz_t = transducer_mesh_full()
 #xyz_m = measurement_mesh_full()
@@ -192,24 +193,34 @@ print("\nPressure matrix:")
 print(np.shape(pressure_matrix))
 #print(pressure_matrix)
 print("\nReal Part")
-#print(p)
+#print(np.shape(p))
 
 # Plot the pressure map
+# Need Pressure array to now be 2D with x = x and y = z
+
+#creating the pressure array used for graphing
+xy_size = int(np.sqrt(len(xyz_m[0])))
+graphing_array = np.reshape(p, (xy_size, xy_size))
+print(graphing_array[0])
+
+'''
+_______________________________________________________________________________
+NOTE: I am not sure how our current program is grabbing the data. 
+I am assuming that it begins by calculating P at each M point at height h
+_______________________________________________________________________________
+'''
+
+
 
 '''
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-
+tempz = np.zeros([xy_size, xy_size])
 # Make data.
-X = xyz_m[0]
-Y = xyz_m[1]
 
-X, Y = np.meshgrid(X, Y)
-
-Z = p
 
 # Plot the surface.
-surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
+surf = ax.plot_surface(graphing_array[0],graphing_array[1], tempz,   cmap=cm.coolwarm,
                        linewidth=0, antialiased=False)
 
 # Customize the z axis.
@@ -234,23 +245,25 @@ plt.surf(X,Y,Z,pressure_matrix)
 
 py.show()
 '''
-'''
-X = xyz_m[0]
-Y = xyz_m[1]
 
-X, Y = np.meshgrid(X, Y)
+#these will be the x and z values of our M space...must be a mesh though
+#so the space before concatenated!
+# NOTE: ONLY WORKS FOR HALF MESH
+X = np.reshape(xyz_m[0], (xy_size, xy_size)) #only works for half mesh
+Z = np.reshape(xyz_m[2], (xy_size, xy_size))
 
-
-pyplot.contourf(X, Y, p, alpha=0.5, cmap=cm.viridis)
+print(np.shape(X), np.shape(Z), 'shapes')
+fig = pyplot.figure(figsize=(11,7), dpi=100)
+pyplot.contourf(X, Z, graphing_array, alpha=0.5, cmap=cm.viridis)
 pyplot.colorbar()
-pyplot.contour(X, Y, p, cmap=cm.viridis)
-pyplot.streamplot(X, Y, u, v)
+pyplot.contour(X, Z, graphing_array, cmap=cm.viridis)
+#pyplot.streamplot(X, Z, u, v)
 pyplot.xlabel('X')
-pyplot.ylabel('Y');
+pyplot.ylabel('Z');
 
 
 py.show()
-'''
+
 
 
 

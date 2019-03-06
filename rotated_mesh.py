@@ -118,7 +118,7 @@ transducers_ring.Transducers(input).ring_points()
 
 p = np.zeros([Ntot,3,])
 '''
-
+'''
 # create figure for plotting
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -148,7 +148,7 @@ for i in range(len(N)):
 
 
 #print(Rsphere)
-
+'''
 
 
 
