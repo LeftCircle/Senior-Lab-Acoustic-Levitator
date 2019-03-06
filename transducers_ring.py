@@ -2,28 +2,15 @@
 import numpy as np
 import pylab as py
 import matplotlib.pyplot as plt
-
-'''
-1.) Calculate the pressure field with Rayleigh integral
-discretize transducer and reflector into small cells
-'''
-#create however many transducers from center to radius and place on y axis
-    #translate each one vertically in z to match position
-    #rotate alpha degrees about x axis to match angle
-    #copy each transducer, rotate in polar to real position, then rotate about
-    #x to get actual orientation
     
 #actually three rings of transducers at 3 different radia.
-#radius should be 5mm and distance between ~2.5 mm
+#radius should be 5mm 
 class Transducers:
-    #just creating the transducers on z for now
     def __init__(self, ntr, radius, meshN):
         self.radius = radius
         self.meshN = meshN
         self.ntr = ntr  #transducers in rx
         
-    
-    #Transducers in inner ring (ring1)
     def transducer_angle(self, tr):
         angle = 2 * np.pi / (tr)
         return angle
@@ -31,8 +18,8 @@ class Transducers:
     
     # creates circular mesh
     def ring_points(self):
-        centerx = 0      #radius_ring1 * np.cos(self.transducer_angle(self.ntr)*i)
-        centery = 0      #radius_ring1 * np.sin(self.transducer_angle(self.ntr)*i) - (self.yshift) #quick fix for positioning
+        centerx = 0      
+        centery = 0       
                             
         x_start = centerx - self.radius
         x_end   = centerx + self.radius
@@ -56,15 +43,8 @@ class Transducers:
     # 0 = x, 1 = y, 2=z
     def transducer(self):  # 3D
         #create a square mesh and only pick values that are in circle
-        
-        # calls function that creates circular mesh
         xy = self.ring_points()
-        
-        x = xy[0]
-        y = xy[1]
-        
-        #print("x",x)
-        #print("y",y)
+        x = xy[0] ; y = xy[1]
                 
         # array for z values
         # all zeros initially before translation
@@ -77,10 +57,6 @@ class Transducers:
         
         #creating meshpoints for y axis transducers
         for i in range(0, self.ntr): 
-            #radius_ring1 = (2. * self.radius / (self.transducer_angle(self.ntr)))*1.5
-                       
-            #height[:] += self.z
-            
             # creation of ntr number of transducers at the origin
             transducer_i_x.append(x)
             transducer_i_y.append(y)
@@ -105,11 +81,13 @@ class Transducers:
 #for testing    
 #how to access data :
 #called three times, once for each ring
-'''
+
 #how to grab data
-all_t = Transducers(6, 5, 1, 50, 0)
-print(all_t.z)
-'''
+ntr = [6, 12, 18]
+for i in range(len(ntr)): 
+    all_t = Transducers(ntr, 5, 10)
+    print(all_t.z)
+
     
 '''
 fig, ax = plt.subplots()

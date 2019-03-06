@@ -42,10 +42,11 @@ class M_mesh:
                 z_array.append((np.ones(len(x))) * z[i])
                 
             return x_array, y_array, z_array
-        if self.half == 2: #potentially better method for m_mesh
+        if self.half == 2: #potentially better method for m_mesh half
             h_m_mesh_n = 2 * self.m_mesh_n  #half mesh mesh number
-            x_start = -self.radius_largest_ring  #not good for sections that don't cross through center
-            x_end   = self.radius_largest_ring #might want to do -0.01 but who knows #######will need to be fixed
+            
+            x_end   = self.radius_largest_ring + self.t_radius
+            x_start = -x_end
             x = np.linspace(x_start, x_end, h_m_mesh_n)  #finer mesh b/c less points
             
             y = np.zeros(h_m_mesh_n)
@@ -53,7 +54,7 @@ class M_mesh:
             #x, y = np.meshgrid(x, y)
             
             z_start = self.h_largest_ring + (self.t_radius + 1)#plus 6 ensures not touching mesh transducers
-            z_end   = 2 * self.z_middle - (self.t_radius + 1)
+            z_end   = 2 * self.z_middle - z_start#(self.t_radius + 1)
             z = np.linspace(z_start, z_end, h_m_mesh_n)
             
             x_array, z_array = np.meshgrid(x, z)

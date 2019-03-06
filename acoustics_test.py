@@ -29,24 +29,27 @@ from mpl_toolkits.mplot3d import Axes3D
       
 #initial condition constants
 ntr = [6,12,18,6,12,18]                                
+#ntr = [1,0,0,1,0,0]
+#h_i = [0,0,0,50,50,50]
 h_i = [5, 15, 25, 195, 185, 175] #[mm]
-t_radius = 5.                # radius of transducer [mm]
-meshN = 5                   # number of points in side length of square that represents transducer
+t_radius = 10.                # radius of transducer [mm]
+t_meshN = 10                   # number of points in side length of square that represents transducer
+m_meshN = 5                   # number of points in side length of square that represents transducer
 z_middle = 100
 radius_largest_ring = 30    # radius of transducer ring [mm] guess
 
-omega = 1000.               # angular frequency #also a guess
+omega = 40.e3               # frequency of emitted sound [Hz]
 c = 343.e3                  # wave propogation velocity [mm/s]
 amplitude = 0.01            # displacement amplitude #also a guess
 phase = 0.                  # excitation phase of displacement
 dens = 1.225e-9             # density of propogation medium [kg/mm^3]
-wavelength = 0.0002         # wavelength of emitted sounds [mm]     ### TODO find actual numbers for these 2
+wavelength = (c/omega)*(1e3)# wavelength of emitted sounds [mm]     ### TODO find actual numbers for these 2
 
 
-t_mesh = len(transducers_ring.Transducers(1, 5, meshN).ring_points()[0])
+t_mesh = len(transducers_ring.Transducers(1, 5, t_meshN).ring_points()[0])
 
 
-ntr_half = [6,12,18]
+ntr_half = np.array([ntr[0],ntr[1],ntr[2]])
 #h_half = [5, 15, 25]
 
 
@@ -65,34 +68,34 @@ def transducer_mesh_full():
     x = [] ; y = [] ; z = []
     for i in range(len(ntr)):
         tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i],
-                                            meshN).rotated_mesh()
+                                            t_meshN).rotated_mesh()
         for j in range(ntr[i]):
             x.append(tr_mesh[j][0])
             y.append(tr_mesh[j][1])
             z.append(tr_mesh[j][2])
         
-    return np.array([x,y,z])
-    # return np.concatenate(x), np.concatenate(y), np.concatenate(z)
+    #return np.array([x,y,z])
+    return np.concatenate(x), np.concatenate(y), np.concatenate(z)
  
 #data is super easy to grab from ^^
-'''
+
 xyz = transducer_mesh_full()
 print(len(xyz[0]))
 print(len(xyz[1]))
 print(len(xyz[2]))
 ax.scatter(xyz[0], xyz[1], xyz[2])
-py.show()
-'''
+#py.show()
+
 def measurement_mesh_full():
     x = [] ; y = [] ; z = []
     m_mesh = measurement_mesh.M_mesh(radius_largest_ring, h_i[2], z_middle,
-                                     int(1.5 * meshN), 0, t_radius).m_mesh()
+                                     int(m_meshN), 0, t_radius).m_mesh()
     for i in range(int(len(m_mesh[0][0]) / 2)):
         x.append(m_mesh[0][i]) 
         y.append(m_mesh[1][i])
         z.append(m_mesh[2][i])
-    return np.array([x,y,z])
-    # return np.concatenate(x), np.concatenate(y), np.concatenate(z)
+    #return np.array([x,y,z])
+    return np.concatenate(x), np.concatenate(y), np.concatenate(z)
 
 ''' 
 data is super easy to grab from ^^
@@ -114,7 +117,7 @@ def half_mesh_t():
     x = [] ; y = [] ; z = []
     for i in range(len(ntr_half)):
         tr_mesh = rotated_mesh.Rotated_mesh(ntr_half[i], z_middle, h_i[i],
-                                            meshN).rotated_mesh()
+                                            t_meshN).rotated_mesh()
         for j in range(ntr[i]):
             x.append(tr_mesh[j][0])
             y.append(tr_mesh[j][1])
@@ -127,7 +130,7 @@ def half_mesh_t():
 def half_mesh_m():
     x = [] ; y = [] ; z = []
     m_mesh = measurement_mesh.M_mesh(radius_largest_ring, h_i[2], z_middle,
-                                     int(1.5 * meshN), 2, t_radius).m_mesh()
+                                     int(m_meshN), 2, t_radius).m_mesh()
 
     for i in range(len(m_mesh[0][0])):
         if i == 1:
@@ -146,22 +149,22 @@ def half_mesh_m():
 
 
 
-xyz_t = half_mesh_t()
-ax.scatter(xyz_t[0], xyz_t[1], xyz_t[2])
-xyz = half_mesh_m()
-ax.scatter(xyz[0], xyz[1], xyz[2])
+#xyz_t = half_mesh_t()
+#ax.scatter(xyz_t[0], xyz_t[1], xyz_t[2])
+xyz_mm = half_mesh_m()
+ax.scatter(xyz_mm[0], xyz_mm[1], xyz_mm[2])
 py.show()
 
 
 
 #testing matrix method things using half mesh
-xyz_t = half_mesh_t()
+#xyz_t = half_mesh_t()
 xyz_m = half_mesh_m()
 print(len(xyz_m[0]), 'half mesh x')
 print(len(xyz_m[1]), 'half mesh y')
 print(len(xyz_m[2]), 'half mesh z')
 
-#xyz_t = transducer_mesh_full()
+xyz_t = transducer_mesh_full()
 #xyz_m = measurement_mesh_full()
 
 # params for Matrix_method:

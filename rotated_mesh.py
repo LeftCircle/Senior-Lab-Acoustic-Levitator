@@ -4,6 +4,7 @@ import pylab as py
 import matplotlib.pyplot as plt
 import transducers_ring
 import matrix_rotation
+import measurement_mesh as mm
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -24,7 +25,7 @@ class Rotated_mesh:
     #    rSphere = (self.a_1**2 + self.h_i**2) / (2 * self.h_i)  #-> will be used to calculate actual values to replace h_i and a_i
     #    return rSphere
     
-    # the angle that a transducer is rotated about the z-axis, determines it position on the ring
+    # the angle that a transducer is rotated about the z-axis, determines it's position on the ring
     # calculated based off known quantities
     def alpha(self):
         angle =[]
@@ -34,7 +35,10 @@ class Rotated_mesh:
         
     # returns a GUESS for the a value for ring i
     def a_i(self):
-        return (( 10 / (self.alpha()[1]))*1.5)    
+        #print(self.alpha(), 'alpha test')
+        #print(np.shape(self.alpha()), 'shape alpha')
+        return  (( 10 / (self.alpha()[1]))*1.5)
+        #return 1.5 * (10 / (2 *np.pi / self.tr_i))
   
     # the angle the transducers are rotated about the y-axis so that it faces the center once translated
     # calculated based off known quantities
@@ -61,20 +65,33 @@ class Rotated_mesh:
             trans = trans.transducer()
             
             transducer_array = self.unrotated_xyz_i(trans, i)
-            ry = rotate.rotation_y(transducer_array, -self.theta())   #blows up here! should do all rotations at 0, 0
-            rx = rotate.rotation_z(ry, self.alpha()[i])
+            ry = rotate.rotation_y(transducer_array, -self.theta())   
+            rz = rotate.rotation_z(ry, self.alpha()[i])
             #now translate
-            rx[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
-            rx[1] += self.a_i() * np.sin(self.alpha()[i]) 
+            rz[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
+            rz[1] += self.a_i() * np.sin(self.alpha()[i]) 
             #and vertical translation
-            rx[2] += self.h_i
+            rz[2] += self.h_i
             
-            rotated_array.append(rx)
+            rotated_array.append(rz)
             
             
             
             
         return rotated_array
+    
+    def rotated_measurement_mesh(self, radius_largest_ring, h_largest_ring, 
+                                 z_middle, m_mesh_n, half, t_radius):
+        unrotated_mm = mm.M_mesh(radius_largest_ring, h_largest_ring,
+                                 z_middle, m_mesh_n, half, t_radius)
+        '''
+        goal: assume all transducers are centered at (0,0), and rotate the
+        measurement mesh instead of the transducer mesh to calculate the P
+        matrix for each transducer. Then rotate the P matrix back to the 
+        original shape
+        '''
+        
+        return
     
     
     #rotate by theta then alpha(radians to center) then translate
