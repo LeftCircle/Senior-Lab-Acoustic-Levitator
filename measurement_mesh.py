@@ -61,6 +61,28 @@ class M_mesh:
             y_array = np.zeros([len(x_array[0]), len(x_array[0])])
             return x_array, y_array, z_array
         
+        if self.half == 3: #if working with directionality (may break distance calculations)
+            #creates a mesh centered at zero
+            h_m_mesh_n = 2 * self.m_mesh_n  #half mesh mesh number
+            
+            x_end   = self.radius_largest_ring + self.t_radius
+            x_start = -x_end
+            x = np.linspace(x_start, x_end, h_m_mesh_n)  #finer mesh b/c less points
+            
+            y = np.zeros(h_m_mesh_n)
+            
+            #x, y = np.meshgrid(x, y)
+            
+            z_start = self.h_largest_ring + (self.t_radius + 1)#plus 6 ensures not touching mesh transducers
+            z_end   = 2 * self.z_middle - z_start#(self.t_radius + 1)
+            height = z_end - z_start
+            z_start = -height / 2 ; z_end = height / 2
+            z = np.linspace(z_start, z_end, h_m_mesh_n)
+            
+            x_array, z_array = np.meshgrid(x, z)
+            y_array = np.zeros([len(x_array[0]), len(x_array[0])])
+            return x_array, y_array, z_array
+        
         else:
             x_start = -self.radius_largest_ring
             x_end   =  self.radius_largest_ring

@@ -9,15 +9,19 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 class Rotated_mesh:
-    def __init__(self, tr_i, z_middle, h_i, mesh_num):
+    def __init__(self, tr_i, z_middle, h_i, mesh_num, radius_largest_ring,
+                 m_meshN, t_radius):
         self.tr_i = tr_i            # transisters in i
         self.z_middle = z_middle    # midpoint of TinyLev
         self.h_i = h_i              # height of ring i  == z from transducers_ring1
         #self.a_1 = a_1              # radius of spherical cap at ring 1 (will be measured)
         self.mesh_num = mesh_num    # number of points in a mesh representing one transducer
+        self.radius_largest_ring = radius_largest_ring
+        self.m_meshN = m_meshN
+        self.t_radius = t_radius
     
     def origin_mesh(self):
-        trans = transducers_ring.Transducers(self.tr_i, 5, self.mesh_num)
+        trans = transducers_ring.Transducers(self.tr_i, self.t_radius, self.mesh_num)
         return trans
 
     # calculates the radius of the sphere based off known/measured quantities
@@ -37,15 +41,18 @@ class Rotated_mesh:
     def a_i(self):
         #print(self.alpha(), 'alpha test')
         #print(np.shape(self.alpha()), 'shape alpha')
-        return  (( 10 / (self.alpha()[1]))*1.5)
-        #return 1.5 * (10 / (2 *np.pi / self.tr_i))
+        #return  (( 10 / (self.alpha()[1]))*1.5)   #WHEN USING ALL TRANSDUCERS USE THIS
+        return 1.5 * (10 / (2 *np.pi / self.tr_i)) #for testing (two transducers)
   
     # the angle the transducers are rotated about the y-axis so that it faces the center once translated
     # calculated based off known quantities
-    def theta(self):                                
+    
+    def theta(self):########################################### TEST ANGLE IS HERE ################################################                                
         angle = np.arctan(self.a_i() / (self.z_middle - self.h_i))
-        return angle
+        angle_test = 20 * np.arctan(self.a_i() / (self.z_middle - self.h_i))
         
+        return angle
+    
     # returns the mesh points of one transducer in a given ring before rotation
     # transducer_array = any 
     def unrotated_xyz_i(self, transducer_array, i):
@@ -74,25 +81,65 @@ class Rotated_mesh:
             rz[2] += self.h_i
             
             rotated_array.append(rz)
-            
-            
-            
-            
+         
         return rotated_array
     
-    def rotated_measurement_mesh(self, radius_largest_ring, h_largest_ring, 
-                                 z_middle, m_mesh_n, half, t_radius):
-        unrotated_mm = mm.M_mesh(radius_largest_ring, h_largest_ring,
-                                 z_middle, m_mesh_n, half, t_radius)
-        '''
-        goal: assume all transducers are centered at (0,0), and rotate the
-        measurement mesh instead of the transducer mesh to calculate the P
-        matrix for each transducer. Then rotate the P matrix back to the 
-        original shape
-        '''
-        
-        return
+    def theta_array_func(self):
+        theta_array = []
+        for i in range(self.tr_i):
+            theta_array.append(-self.theta())
+        return theta_array
     
+    def alpha_array_func(self):
+        alpha_array = []
+        for i in range(self.tr_i):
+            alpha_array.append(self.alpha())
+        return alpha_array
+    
+    def half_mesh_m(self):  
+        x = [] ; y = [] ; z = []
+    
+        m_mesh = mm.M_mesh(self.radius_largest_ring, self.h_i, self.z_middle,
+                                         self.m_meshN, 3, self.t_radius).m_mesh()
+    
+        for i in range(len(m_mesh[0][0])):
+            
+            x.append(m_mesh[0][i]) 
+            y.append(m_mesh[1][i])
+            z.append(m_mesh[2][i])
+        
+        # return np.array([x,y,z])
+        # return x,y,z
+        return np.concatenate(x), np.concatenate(y), np.concatenate(z)
+    
+    #going to create 72? different rotated middles. The graph will look like]
+    #death but this will work for calculations I think
+    def rotated_middle_func(self):
+        rotated_middle = []
+        rotate = matrix_rotation.Rotation(1)
+        #grabbing one ring at a time
+        
+        #rotating middle instead of transducer for each transducer in ring x:
+        
+        for i in range(self.tr_i):
+            
+            trans = self.origin_mesh() #may not be needed?
+            trans = trans.transducer()
+            m_mesh = self.half_mesh_m()
+            
+            #transducer_array = self.unrotated_xyz_i(trans, i)
+            ry = rotate.rotation_y(m_mesh, -self.theta())   
+            rz = rotate.rotation_z(ry, self.alpha()[i])
+            #now translate
+            rz[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
+            rz[1] += self.a_i() * np.sin(self.alpha()[i]) 
+            #and vertical translation
+            rz[2] += self.h_i
+            
+            rotated_middle.append(rz)
+        return rotated_middle
+        
+            
     
     #rotate by theta then alpha(radians to center) then translate
      

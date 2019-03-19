@@ -81,13 +81,13 @@ class Transducers:
 #for testing    
 #how to access data :
 #called three times, once for each ring
-
+'''
 #how to grab data
 ntr = [6, 12, 18]
 for i in range(len(ntr)): 
     all_t = Transducers(ntr, 5, 10)
-    print(all_t.z)
-
+    print(all_t.z) #broken
+'''
     
 '''
 fig, ax = plt.subplots()

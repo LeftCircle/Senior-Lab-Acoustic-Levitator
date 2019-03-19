@@ -28,11 +28,11 @@ from mpl_toolkits.mplot3d import Axes3D
 #   wavelength of emitted sound
       
 #initial condition constants
-ntr = [6,12,18,6,12,18]                                
-#ntr = [1,0,0,1,0,0]
+#ntr = [6,12,18,6,12,18]                                
+ntr = [1,0,0,1,0,0]        #good for testing
 #h_i = [0,0,0,50,50,50]
 h_i = [5, 15, 25, 195, 185, 175] #[mm]
-t_radius = 10.                # radius of transducer [mm]
+t_radius = 5.                # radius of transducer [mm]
 t_meshN = 10                   # number of points in side length of square that represents transducer
 m_meshN = 5                   # number of points in side length of square that represents transducer
 z_middle = 100
@@ -61,14 +61,16 @@ ax.set_xlim3d(-100, 100)
 ax.set_ylim3d(-100, 100)
 ax.set_zlim3d(0, 200)
 
+
 # Accessing the data:
 #    - how to output specific x, y, z components from the mesh
 
 def transducer_mesh_full():
     x = [] ; y = [] ; z = []
     for i in range(len(ntr)):
-        tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i],
-                                            t_meshN).rotated_mesh()
+        
+        tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+                                        radius_largest_ring, m_meshN, t_radius).rotated_mesh()
         for j in range(ntr[i]):
             x.append(tr_mesh[j][0])
             y.append(tr_mesh[j][1])
@@ -78,14 +80,14 @@ def transducer_mesh_full():
     return np.concatenate(x), np.concatenate(y), np.concatenate(z)
  
 #data is super easy to grab from ^^
-
+'''
 xyz = transducer_mesh_full()
 print(len(xyz[0]))
 print(len(xyz[1]))
 print(len(xyz[2]))
 ax.scatter(xyz[0], xyz[1], xyz[2])
 #py.show()
-
+'''
 def measurement_mesh_full():
     x = [] ; y = [] ; z = []
     m_mesh = measurement_mesh.M_mesh(radius_largest_ring, h_i[2], z_middle,
@@ -116,8 +118,8 @@ py.show()
 def half_mesh_t():
     x = [] ; y = [] ; z = []
     for i in range(len(ntr_half)):
-        tr_mesh = rotated_mesh.Rotated_mesh(ntr_half[i], z_middle, h_i[i],
-                                            t_meshN).rotated_mesh()
+        tr_mesh = rotated_mesh.Rotated_mesh(ntr_half[i], z_middle, h_i[i], t_meshN,
+                                        radius_largest_ring, m_meshN, t_radius).rotated_mesh()
         for j in range(ntr[i]):
             x.append(tr_mesh[j][0])
             y.append(tr_mesh[j][1])
@@ -129,12 +131,12 @@ def half_mesh_t():
 
 def half_mesh_m():
     x = [] ; y = [] ; z = []
+
     m_mesh = measurement_mesh.M_mesh(radius_largest_ring, h_i[2], z_middle,
                                      int(m_meshN), 2, t_radius).m_mesh()
 
     for i in range(len(m_mesh[0][0])):
-        if i == 1:
-            print(len(m_mesh[0][1]), i, 'len m_mesh  in half mesh for i == 1') #prints twice?
+        
         x.append(m_mesh[0][i]) 
         y.append(m_mesh[1][i])
         z.append(m_mesh[2][i])
@@ -142,19 +144,67 @@ def half_mesh_m():
     # return np.array([x,y,z])
     # return x,y,z
     return np.concatenate(x), np.concatenate(y), np.concatenate(z)
-    
-    # return np.array([x,y,z])
-    # return x,y,z
-    return np.concatenate(x), np.concatenate(y), np.concatenate(z)
 
 
+################################################################################
+    #p matrix stuff if fucked at the moment for this section
+'''
+will be used for directionality. Must also have half_mesh_m ^^^^
+'''
+#graphing transducer mesh
+def translated_m_mesh():
+    xm_ar = [] ; ym_ar = [] ; zm_ar = [] #these store the values of arrays for calculating P | SUPER IMPORTANT
+    for i in range(len(ntr)):
+        
+        tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+                                            radius_largest_ring, m_meshN, t_radius).rotated_mesh()
+        #print(rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+        #                                    radius_largest_ring, m_meshN, t_radius).rotated_middle_func(), 'theta arrays')
+        rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+                                            radius_largest_ring, m_meshN, t_radius).rotated_middle_func()   
+        
+        for j in range(ntr[i]):
+            
+            x = tr_mesh[j][0] #; x = np.concatenate((x , half_mesh_m()[0]))
+            y = tr_mesh[j][1] #; y = np.concatenate((y , half_mesh_m()[1]))
+            z = tr_mesh[j][2] #; z = np.concatenate((z , half_mesh_m()[2]))
+            ax.scatter(x, y, z)
+            
+            xm = rotated_middle[j][0]
+            ym = rotated_middle[j][1]
+            zm = rotated_middle[j][2]
+            xm_ar.append(xm)
+            ym_ar.append(ym)
+            zm_ar.append(zm)
+            ax.scatter(xm, ym, zm)
+    return xm_ar, ym_ar, zm_ar
 
+#print(xm_ar, 'xmiddle arrays')
+
+plt.show()
+
+#now calculating pressure matrix using moved interior matrices and transducers
+#at the origin
+xyz_t = transducer_mesh_full()
+m_meth = matrix_method.Matrix_method(omega, c, amplitude, t_mesh, t_radius,
+                                     phase, dens, wavelength)
+# calculate the transfer and excitation matrices
+transfer_matrix = m_meth.t_matrix(xyz_t, xyz_m)
+u_matrix = m_meth.u_matrix(xyz_t)
+
+# use T and U to calculate the pressure matrix
+pressure_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
+
+# capture the real part
+p = np.real(pressure_matrix)
+###############################################################################
+'''
 #xyz_t = half_mesh_t()
 #ax.scatter(xyz_t[0], xyz_t[1], xyz_t[2])
 xyz_mm = half_mesh_m()
 ax.scatter(xyz_mm[0], xyz_mm[1], xyz_mm[2])
 py.show()
-
+'''
 
 
 #testing matrix method things using half mesh
@@ -248,7 +298,7 @@ plt.surf(X,Y,Z,pressure_matrix)
 
 py.show()
 '''
-
+''' #THIS GRAPH WORKS
 #these will be the x and z values of our M space...must be a mesh though
 #so the space before concatenated!
 # NOTE: ONLY WORKS FOR HALF MESH
@@ -266,7 +316,7 @@ pyplot.ylabel('Z');
 
 
 py.show()
-
+'''
 
 
 
