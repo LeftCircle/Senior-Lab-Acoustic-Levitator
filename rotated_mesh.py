@@ -52,7 +52,7 @@ class Rotated_mesh:
         angle = np.arctan(self.a_i() / (self.z_middle - self.h_i))
         angle_test = 20 * np.arctan(self.a_i() / (self.z_middle - self.h_i))
         
-        return angle_test
+        return angle
     
     # returns the mesh points of one transducer in a given ring before rotation
     # transducer_array = any 
