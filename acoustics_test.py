@@ -151,52 +151,71 @@ def half_mesh_m():
 '''
 will be used for directionality. Must also have half_mesh_m ^^^^
 '''
-#graphing transducer mesh
-def translated_m_mesh():
+#graphing transducer mesh and middle mesh
+def translated_tm_mesh():
     xm_ar = [] ; ym_ar = [] ; zm_ar = [] #these store the values of arrays for calculating P | SUPER IMPORTANT
+    x_ar = []  ; y_ar = []  ; z_ar = []
+    
     for i in range(len(ntr)):
         
-        tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                                            radius_largest_ring, m_meshN, t_radius).rotated_mesh()
-        #print(rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-        #                                    radius_largest_ring, m_meshN, t_radius).rotated_middle_func(), 'theta arrays')
-        rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                                            radius_largest_ring, m_meshN, t_radius).rotated_middle_func()   
+        #tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+        #                                    radius_largest_ring, m_meshN, t_radius).rotated_mesh()
+        
+        if i < int(len(ntr) / 2 - 1):
+            xyz_t_lower = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+                        radius_largest_ring, m_meshN, t_radius).unrotated_rings(0)
+            rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[2], t_meshN,
+                                            radius_largest_ring, m_meshN, t_radius).rotated_middle_func(0)
+        if i > int(len(ntr) / 2 - 1):
+            xyz_t_lower = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+                        radius_largest_ring, m_meshN, t_radius).unrotated_rings(1)
+            rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[2], t_meshN,
+                                            radius_largest_ring, m_meshN, t_radius).rotated_middle_func(1)
+        
+           
         
         for j in range(ntr[i]):
             
-            x = tr_mesh[j][0] #; x = np.concatenate((x , half_mesh_m()[0]))
-            y = tr_mesh[j][1] #; y = np.concatenate((y , half_mesh_m()[1]))
-            z = tr_mesh[j][2] #; z = np.concatenate((z , half_mesh_m()[2]))
-            ax.scatter(x, y, z)
-            
-            xm = rotated_middle[j][0]
-            ym = rotated_middle[j][1]
-            zm = rotated_middle[j][2]
+            x = xyz_t_lower[int(j / 2)][0] #; x = np.concatenate((x , half_mesh_m()[0]))
+            y = xyz_t_lower[int(j / 2)][1] #; y = np.concatenate((y , half_mesh_m()[1]))
+            z = xyz_t_lower[int (j / 2)][2] #; z = np.concatenate((z , half_mesh_m()[2]))
+            #ax.scatter(x, y, z)
+            x_ar.append(x) ; y_ar.append(y) ; z_ar.append(z)
+            xm = rotated_middle[int(j / 2)][0]
+            ym = rotated_middle[int(j / 2)][1]
+            zm = rotated_middle[int(j / 2)][2]  ##issue is with this j value. Doesn't work for the full set of transducers
             xm_ar.append(xm)
             ym_ar.append(ym)
             zm_ar.append(zm)
-            ax.scatter(xm, ym, zm)
-    return xm_ar, ym_ar, zm_ar
+            #ax.scatter(xm, ym, zm)
+    return x_ar, y_ar, z_ar, xm_ar, ym_ar, zm_ar
 
-#print(xm_ar, 'xmiddle arrays')
 
-plt.show()
-
+'''
+ACCESSING DATA:
+translated_tm_mesh()[0,1,2 = transister x/y/z | 3,4,5 = middle xyz][transducer i]
+transducers are hopefully indexed such that 0-35 are the bottom transducers and
+36-71 are the top.
+'''
 #now calculating pressure matrix using moved interior matrices and transducers
 #at the origin
-xyz_t = transducer_mesh_full()
+
+
+xyz_m = translated_tm_mesh()
+ax.scatter(xyz_m[3], xyz_m[4], xyz_m[5])
+py.show()
+print(xyz_m[5][1])
 m_meth = matrix_method.Matrix_method(omega, c, amplitude, t_mesh, t_radius,
                                      phase, dens, wavelength)
 # calculate the transfer and excitation matrices
-transfer_matrix = m_meth.t_matrix(xyz_t, xyz_m)
-u_matrix = m_meth.u_matrix(xyz_t)
+#transfer_matrix = m_meth.t_matrix(xyz_t, xyz_m)
+#u_matrix = m_meth.u_matrix(xyz_t)
 
 # use T and U to calculate the pressure matrix
-pressure_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
+#pressure_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
 
 # capture the real part
-p = np.real(pressure_matrix)
+#p = np.real(pressure_matrix)
 ###############################################################################
 '''
 #xyz_t = half_mesh_t()

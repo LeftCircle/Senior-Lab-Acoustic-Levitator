@@ -19,6 +19,7 @@ class Rotated_mesh:
         self.radius_largest_ring = radius_largest_ring
         self.m_meshN = m_meshN
         self.t_radius = t_radius
+        
     
     def origin_mesh(self):
         trans = transducers_ring.Transducers(self.tr_i, self.t_radius, self.mesh_num)
@@ -51,7 +52,7 @@ class Rotated_mesh:
         angle = np.arctan(self.a_i() / (self.z_middle - self.h_i))
         angle_test = 20 * np.arctan(self.a_i() / (self.z_middle - self.h_i))
         
-        return angle
+        return angle_test
     
     # returns the mesh points of one transducer in a given ring before rotation
     # transducer_array = any 
@@ -60,6 +61,38 @@ class Rotated_mesh:
                transducer_array[2][i]]
         return xyz  
     
+    def unrotated_rings(self, lower_or_upper):  #used for directionality. Creates upper/lower rings centered at x/y = 0
+        if lower_or_upper == 0:
+            #rotate = matrix_rotation.Rotation(1)
+            #grabbing one ring at a time
+            
+            #rotating each transducers in ring x:
+            unrotated_array = []
+            for i in range(self.tr_i):
+                
+                trans = self.origin_mesh()
+                trans = trans.transducer()
+                
+                unrotated_array.append(self.unrotated_xyz_i(trans, i))
+        if lower_or_upper == 1:
+            #rotate = matrix_rotation.Rotation(1)
+            #grabbing one ring at a time
+            
+            #rotating each transducers in ring x:
+            unrotated_array = []
+            for i in range(self.tr_i):
+                
+                trans = self.origin_mesh()
+                trans = trans.transducer()
+                
+                rz = (self.unrotated_xyz_i(trans, i))
+                rz[2] += self.h_i           ########## should put them all at highest ring, not h_i #########
+                unrotated_array.append(rz) 
+                
+         
+        return unrotated_array
+        
+        
     def rotated_mesh(self):
         rotate = matrix_rotation.Rotation(1)
         #grabbing one ring at a time
@@ -114,31 +147,47 @@ class Rotated_mesh:
     
     #going to create 72? different rotated middles. The graph will look like]
     #death but this will work for calculations I think
-    def rotated_middle_func(self):
+    def rotated_middle_func(self, lower_or_upper):
         rotated_middle = []
         rotate = matrix_rotation.Rotation(1)
         #grabbing one ring at a time
         
         #rotating middle instead of transducer for each transducer in ring x:
-        
-        for i in range(self.tr_i):
-            
-            trans = self.origin_mesh() #may not be needed?
-            trans = trans.transducer()
-            m_mesh = self.half_mesh_m()
-            
-            #transducer_array = self.unrotated_xyz_i(trans, i)
-            ry = rotate.rotation_y(m_mesh, -self.theta())   
-            rz = rotate.rotation_z(ry, self.alpha()[i])
-            #now translate
-            rz[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
-            rz[1] += self.a_i() * np.sin(self.alpha()[i]) 
-            #and vertical translation
-            rz[2] += self.h_i
-            
-            rotated_middle.append(rz)
+        if lower_or_upper == 0:
+            for i in range(self.tr_i):
+                
+                #trans = self.origin_mesh() #may not be needed?
+                #trans = trans.transducer()
+                m_mesh = self.half_mesh_m()
+                
+                #transducer_array = self.unrotated_xyz_i(trans, i)
+                ry = rotate.rotation_y(m_mesh, self.theta())   
+                rz = rotate.rotation_z(ry, self.alpha()[i])
+                #now translate
+                rz[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
+                rz[1] += self.a_i() * np.sin(self.alpha()[i]) 
+                #and vertical translation
+                rz[2] +=  self.z_middle  
+                
+                rotated_middle.append(rz)
+        if lower_or_upper == 1:
+            for i in range(self.tr_i):
+                
+                #trans = self.origin_mesh() #may not be needed?
+                #trans = trans.transducer()
+                m_mesh = self.half_mesh_m()
+                
+                #transducer_array = self.unrotated_xyz_i(trans, i)
+                ry = rotate.rotation_y(m_mesh, -self.theta())   
+                rz = rotate.rotation_z(ry, self.alpha()[i])
+                #now translate
+                rz[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
+                rz[1] += self.a_i() * np.sin(self.alpha()[i]) 
+                #and vertical translation
+                rz[2] +=  self.z_middle  
+                
+                rotated_middle.append(rz)
         return rotated_middle
-        
             
     
     #rotate by theta then alpha(radians to center) then translate
@@ -182,7 +231,7 @@ transducers_ring.Transducers(input).ring_points()
 
 p = np.zeros([Ntot,3,])
 '''
-'''
+
 # create figure for plotting
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -191,15 +240,15 @@ ax.set_ylim3d(-100, 100)
 ax.set_zlim3d(-5, 210)
 
 
-
+'''
 Rsphere = 0.
 N = [6,12,18,6,12,18]
 Z = [5, 15, 25, 195, 185, 175]
 number_of_mesh_points = 10
 for i in range(len(N)):
-    rot = Rotated_mesh(N[i], 100, Z[i] , number_of_mesh_points)
-    mesh = rot.rotated_mesh()
-
+    rot = Rotated_mesh(N[i], 100, 175 , number_of_mesh_points, 10, 10, 5)
+    #mesh = rot.rotated_mesh()
+    mesh = rot.unrotated_rings(1)
     #if i == 0:
         #Rsphere = rot.radius_sphere()
     
@@ -209,10 +258,10 @@ for i in range(len(N)):
         z = mesh[i][2]
         ax.scatter(x, y, z)
 #plt.show()
-
+'''
 
 #print(Rsphere)
-'''
+
 
 
 

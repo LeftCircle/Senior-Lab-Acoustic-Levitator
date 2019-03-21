@@ -95,7 +95,7 @@ ax.set(xlabel='X', ylabel='Y', aspect=1.0)
 N = [6,12,18]
 for n in N:
     
-    all_t = Transducers(n, 5, 0, 50, 0)
+    all_t = Transducers(n, 5, 10)
     all_t = all_t.transducer()
     #[0 = x, 1 = y, 2=z][transducer_i]
     x = all_t[0][0]  

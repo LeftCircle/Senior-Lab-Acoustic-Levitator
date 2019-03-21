@@ -76,7 +76,7 @@ class M_mesh:
             z_start = self.h_largest_ring + (self.t_radius + 1)#plus 6 ensures not touching mesh transducers
             z_end   = 2 * self.z_middle - z_start#(self.t_radius + 1)
             height = z_end - z_start
-            z_start = -height / 2 ; z_end = height / 2
+            z_start = -(height / 2) ; z_end = height / 2
             z = np.linspace(z_start, z_end, h_m_mesh_n)
             
             x_array, z_array = np.meshgrid(x, z)
