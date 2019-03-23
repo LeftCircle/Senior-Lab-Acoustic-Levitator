@@ -77,7 +77,7 @@ class Matrix_method:
     def t_matrix(self, t_points, m_points):
         m_length = len(m_points[0]) ; t_length = len(t_points[0])
         
-        print(m_length, 'm_length', t_length, 't_length |', 't_matrix' )
+        #print(m_length, 'm_length', t_length, 't_length |', 't_matrix' )
         
         t_m = np.zeros([m_length, t_length], dtype=complex) #m rows, t collumns
         r_nm = self.r_nm_m(t_points, m_points)
@@ -92,7 +92,7 @@ class Matrix_method:
     # assembles displacement matrix
     def u_matrix(self, t_points):
         t_length = len(t_points[0])
-        print(t_length, 't_length', 'for u_matrix')
+        #print(t_length, 't_length', 'for u_matrix')
         u_mat = np.zeros([t_length, 1],  dtype = complex)
         for i in range(t_length):
             u_mat[i] = self.u_n()

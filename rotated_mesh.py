@@ -72,8 +72,11 @@ class Rotated_mesh:
                 
                 trans = self.origin_mesh()
                 trans = trans.transducer()
+                rz = (self.unrotated_xyz_i(trans, i))
+                rz[2] += self.h_i
                 
-                unrotated_array.append(self.unrotated_xyz_i(trans, i))
+                #unrotated_array.append(self.unrotated_xyz_i(trans, i))
+                unrotated_array.append(rz)
         if lower_or_upper == 1:
             #rotate = matrix_rotation.Rotation(1)
             #grabbing one ring at a time

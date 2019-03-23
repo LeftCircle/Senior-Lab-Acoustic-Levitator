@@ -1,13 +1,6 @@
 #Acoustic Levitation Test File
 '''
-This document shows how to access all data types, and is also home to a guess
-for initial conditions for testing purposes, as well as the half mesh, 
-which are certain conditions that could cut down on computational time. The
-half mesh process is described in the matrix method document. 
-_______________________________________________________________________________
-
-eventually, this code will be implimented into a main() function where all of 
-the code is executed. For now, this is a reference and testing environment.  
+Please excuse this fever dream of a code 
 '''
 
 import numpy as np
@@ -32,10 +25,11 @@ from mpl_toolkits.mplot3d import Axes3D
 ntr = [18,12,6,6,12,18]       #for some reason this one works with directionality but not the other way around
 #ntr = [1,0,0,1,2,3]
 #h_i = [0,0,0,50,50,50]
-h_i = [5, 15, 25, 195, 185, 175] #[mm]
+h_i = [25, 15, 5, 195, 185, 175]  #for diractional stuff
+#h_i = [5, 15, 25, 195, 185, 175] #[mm]
 t_radius = 5.                # radius of transducer [mm]
-t_meshN = 10                   # number of points in side length of square that represents transducer
-m_meshN = 5                   # number of points in side length of square that represents transducer
+t_meshN = 10                  # number of points in side length of square that represents transducer
+m_meshN = 10                   # number of points in side length of square that represents transducer
 z_middle = 100
 radius_largest_ring = 30    # radius of transducer ring [mm] guess
 
@@ -46,6 +40,11 @@ phase = 0.                  # excitation phase of displacement
 dens = 1.225e-9             # density of propogation medium [kg/mm^3]
 wavelength = (c/omega)*(1e3)# wavelength of emitted sounds [mm]     ### TODO find actual numbers for these 2
 
+
+'''
+NOTE: t_mesh and m_mesh break directionality unless they have the same number
+of points for some reason
+'''
 
 t_mesh = len(transducers_ring.Transducers(1, 5, t_meshN).ring_points()[0])
 
@@ -181,16 +180,16 @@ def directional_t_mesh():
     for i in range(len(ntr)):
     
         if i < int(len(ntr) / 2 - 1):
-            xyz_t_lower = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+            xyz_t = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
                         radius_largest_ring, m_meshN, t_radius).unrotated_rings(0)
         if i > int(len(ntr) / 2 - 1):
-            xyz_t_lower = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[-1], t_meshN,
+            xyz_t = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
                         radius_largest_ring, m_meshN, t_radius).unrotated_rings(1)        
         for j in range(ntr[i]):
             
-            x = xyz_t_lower[j][0] #; x = np.concatenate((x , half_mesh_m()[0]))
-            y = xyz_t_lower[j][1] #; y = np.concatenate((y , half_mesh_m()[1]))
-            z = xyz_t_lower[j][2] #; z = np.concatenate((z , half_mesh_m()[2]))
+            x = xyz_t[j][0] #; x = np.concatenate((x , half_mesh_m()[0]))
+            y = xyz_t[j][1] #; y = np.concatenate((y , half_mesh_m()[1]))
+            z = xyz_t[j][2] #; z = np.concatenate((z , half_mesh_m()[2]))
             #ax.scatter(x, y, z)
             x_ar.append(x) ; y_ar.append(y) ; z_ar.append(z)
             
@@ -202,7 +201,7 @@ proper r values... done by including h[i] in rotated_mesh code. This is almost
 certainly necessary. But also maybe not
 '''
 '''
-ACCESSING DATA:
+ACCESSING DATA: -- pre concatenate --
 translated_tm_mesh()[0,1,2 = transister x/y/z | 3,4,5 = middle xyz][transducer i]
 transducers are hopefully indexed such that 0-35 are the bottom transducers and
 36-71 are the top.
@@ -212,29 +211,69 @@ transducers are hopefully indexed such that 0-35 are the bottom transducers and
 
 xyz_t = directional_t_mesh()
 xyz_m = directional_m_mesh()
-ax.scatter(xyz_m[0][15], xyz_m[1][15], xyz_m[2][15])
+ax.scatter(xyz_m[0], xyz_m[1], xyz_m[2])
 py.show()
 
 m_meth = matrix_method.Matrix_method(omega, c, amplitude, t_mesh, t_radius,
                                      phase, dens, wavelength)
-# calculate the transfer and excitation matrices
+
+
+
+
+
+#calculate the transfer and excitation matrices
 t_matrix_full = []
+p = np.zeros((len(xyz_m[0][0]),1))
+#print(len(xyz_m[0]), 'xyz_m[0]', len(xyz_m[0][0]), '[0][0]')
 for i in range(sum(ntr)):
-    transfer_matrix = m_meth.t_matrix(xyz_t[:][i], xyz_m[:][i])
+    t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
+    m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]])  
+       
+    #print(t_points)
+    #print(np.shape(t_points), 'shape of t points')
+    #print(np.shape(m_points), 'shape of m points')
+    # NOTE: before we were concatenating all of the x/y/z to separate arrays
+    transfer_matrix = m_meth.t_matrix(t_points, m_points)
+    u_matrix = m_meth.u_matrix(t_points)
+    p_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
+    p_r = np.real(p_matrix)
+    p[:][:] += p_r[:][:]
+    #print(np.shape(p), 'shape of p')
+print(p)
+'''
     if i == 0:
         t_matrix_full = transfer_matrix
+        
     else:
         t_matrix_full = [t_matrix_full + transfer_matrix for t_matrix_full,
                         transfer_matrix in zip(t_matrix_full, transfer_matrix)]
-print(t_matrix_full)
-        
-#u_matrix = m_meth.u_matrix(xyz_t)
+print(t_matrix_full, 't_matrix_full')
+print(np.shape(t_matrix_full))
 
-# use T and U to calculate the pressure matrix
-#pressure_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
+u_matrix_full = []
+for i in range(sum(ntr)):        
+    t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])
+    u_matrix = m_meth.u_matrix(t_points)
+    
+    if i == 0:
+        u_matrix_full = u_matrix
+    else:
+        u_matrix_full = [u_matrix_full + u_matrix for u_matrix_full,
+                        u_matrix in zip(u_matrix_full, u_matrix)]
+print(u_matrix_full, 'u_matrix_full')
+print(np.shape(u_matrix_full))
+#use T and U to calculate the pressure matrix
+p_matrix_full = []
+for i in range(sum(ntr)):    
+    pressure_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
+    if i == 0:
+        p_matrix_full = pressure_matrix
+    else:
+        p_matrix_full += pressure_matrix
 
 # capture the real part
 #p = np.real(pressure_matrix)
+'''
 ###############################################################################
 '''
 #xyz_t = half_mesh_t()
@@ -260,6 +299,7 @@ xyz_t = transducer_mesh_full()
 #   number of points in transducer mesh, radius of transducer, 
 #   excitation phase of displacement, density of propogating medium, 
 #   wavelength of emitted sound
+'''
 m_meth = matrix_method.Matrix_method(omega, c, amplitude, t_mesh, t_radius,
                                      phase, dens, wavelength)
 
@@ -273,7 +313,7 @@ pressure_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
 
 # capture the real part
 p = np.real(pressure_matrix)
-
+'''
 
 # output for debugging
 # print("Transfer matrix:")
@@ -336,7 +376,7 @@ plt.surf(X,Y,Z,pressure_matrix)
 
 py.show()
 '''
-''' #THIS GRAPH WORKS
+ #THIS GRAPH WORKS
 #these will be the x and z values of our M space...must be a mesh though
 #so the space before concatenated!
 # NOTE: ONLY WORKS FOR HALF MESH
@@ -354,7 +394,7 @@ pyplot.ylabel('Z');
 
 
 py.show()
-'''
+
 
 
 
