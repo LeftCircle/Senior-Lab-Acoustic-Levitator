@@ -10,7 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class Rotated_mesh:
     def __init__(self, tr_i, z_middle, h_i, mesh_num, radius_largest_ring,
-                 m_meshN, t_radius):
+                 m_meshN, t_radius, height_largest_ring, h_largest_upper):
         self.tr_i = tr_i            # transisters in i
         self.z_middle = z_middle    # midpoint of TinyLev
         self.h_i = h_i              # height of ring i  == z from transducers_ring1
@@ -19,6 +19,8 @@ class Rotated_mesh:
         self.radius_largest_ring = radius_largest_ring
         self.m_meshN = m_meshN
         self.t_radius = t_radius
+        self.height_largest_ring = height_largest_ring
+        self.h_largest_upper = h_largest_upper
         
     
     def origin_mesh(self):
@@ -57,8 +59,11 @@ class Rotated_mesh:
     # returns the mesh points of one transducer in a given ring before rotation
     # transducer_array = any 
     def unrotated_xyz_i(self, transducer_array, i):
+        
+        
         xyz = [transducer_array[0][i], transducer_array[1][i],
                transducer_array[2][i]]
+        
         return xyz  
     
     def unrotated_rings(self, lower_or_upper):  #used for directionality. Creates upper/lower rings centered at x/y = 0
@@ -66,30 +71,27 @@ class Rotated_mesh:
             #rotate = matrix_rotation.Rotation(1)
             #grabbing one ring at a time
             
-            #rotating each transducers in ring x:
+            #creating transducers centered at origin
             unrotated_array = []
+            trans = self.origin_mesh().transducer()
             for i in range(self.tr_i):
-                
-                trans = self.origin_mesh()
-                trans = trans.transducer()
+            
+                #trans = trans.transducer()
                 rz = (self.unrotated_xyz_i(trans, i))
-                rz[2] += self.h_i
-                
-                #unrotated_array.append(self.unrotated_xyz_i(trans, i))
                 unrotated_array.append(rz)
+                
         if lower_or_upper == 1:
             #rotate = matrix_rotation.Rotation(1)
             #grabbing one ring at a time
             
             #rotating each transducers in ring x:
             unrotated_array = []
+            trans = self.origin_mesh().transducer()
+            
             for i in range(self.tr_i):
                 
-                trans = self.origin_mesh()
-                trans = trans.transducer()
-                
                 rz = (self.unrotated_xyz_i(trans, i))
-                rz[2] += self.h_i           ########## should put them all at highest ring, not h_i #########
+                rz[2] += self.h_largest_upper           
                 unrotated_array.append(rz) 
                 
          
@@ -135,8 +137,8 @@ class Rotated_mesh:
     def half_mesh_m(self):  
         x = [] ; y = [] ; z = []
     
-        m_mesh = mm.M_mesh(self.radius_largest_ring, self.h_i, self.z_middle,
-                                         self.m_meshN, 3, self.t_radius).m_mesh()
+        m_mesh = mm.M_mesh(self.radius_largest_ring, self.height_largest_ring,
+                           self.z_middle, self.m_meshN, 3, self.t_radius).m_mesh()
     
         for i in range(len(m_mesh[0][0])):
             
@@ -165,12 +167,12 @@ class Rotated_mesh:
                 
                 #transducer_array = self.unrotated_xyz_i(trans, i)
                 ry = rotate.rotation_y(m_mesh, self.theta())   
-                rz = rotate.rotation_z(ry, self.alpha()[i])
+                rz = rotate.rotation_z(ry, -self.alpha()[i])
                 #now translate
-                rz[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
-                rz[1] += self.a_i() * np.sin(self.alpha()[i]) 
+                rz[0] -= self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
+                rz[1] -= self.a_i() * np.sin(self.alpha()[i]) 
                 #and vertical translation
-                rz[2] +=  self.z_middle  
+                rz[2] +=  self.z_middle - self.h_i 
                 
                 rotated_middle.append(rz)
         if lower_or_upper == 1:
@@ -181,13 +183,14 @@ class Rotated_mesh:
                 m_mesh = self.half_mesh_m()
                 
                 #transducer_array = self.unrotated_xyz_i(trans, i)
-                ry = rotate.rotation_y(m_mesh, -self.theta())   
-                rz = rotate.rotation_z(ry, self.alpha()[i])
+                ry = rotate.rotation_y(m_mesh, self.theta())   
+                rz = rotate.rotation_z(ry, -self.alpha()[i])
                 #now translate
-                rz[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
-                rz[1] += self.a_i() * np.sin(self.alpha()[i]) 
+                rz[0] -= self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
+                rz[1] -= self.a_i() * np.sin(self.alpha()[i]) 
                 #and vertical translation
-                rz[2] +=  self.z_middle  
+                rz[2] +=  self.z_middle + (self.h_largest_upper - self.h_i)
+                
                 
                 rotated_middle.append(rz)
         return rotated_middle
@@ -236,12 +239,13 @@ p = np.zeros([Ntot,3,])
 '''
 
 # create figure for plotting
+'''
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.set_xlim3d(-100, 100)
 ax.set_ylim3d(-100, 100)
 ax.set_zlim3d(-5, 210)
-
+'''
 
 '''
 Rsphere = 0.

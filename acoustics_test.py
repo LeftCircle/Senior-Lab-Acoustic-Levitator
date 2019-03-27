@@ -22,14 +22,19 @@ from mpl_toolkits.mplot3d import Axes3D
       
 #initial condition constants
 #ntr = [6,12,18,6,12,18]                                
-ntr = [18,12,6,6,12,18]       #for some reason this one works with directionality but not the other way around
-#ntr = [1,0,0,1,2,3]
+#ntr = [18,12,6,6,12,18]       #for some reason this one works with directionality but not the other way around
+ntr = [6,0,0,6,0,0]
+
 #h_i = [0,0,0,50,50,50]
-h_i = [25, 15, 5, 195, 185, 175]  #for diractional stuff
+#h_i = [25, 15, 5, 195, 185, 175]  #for diractional stuff
 #h_i = [5, 15, 25, 195, 185, 175] #[mm]
-t_radius = 5.                # radius of transducer [mm]
+#h_i = [0., 0.5*1.575, 1.575, 15.75-1.575, 15.75-0.5*1.575, 15.75]
+
+
+h_i = [0, 10, 20, 200, 190, 180]
+t_radius = 4.5                # radius of transducer [mm]
 t_meshN = 10                  # number of points in side length of square that represents transducer
-m_meshN = 10                   # number of points in side length of square that represents transducer
+m_meshN = 5                   # number of points in side length of square that represents transducer
 z_middle = 100
 radius_largest_ring = 30    # radius of transducer ring [mm] guess
 
@@ -70,7 +75,7 @@ def transducer_mesh_full():
     for i in range(len(ntr)):
         
         tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                                        radius_largest_ring, m_meshN, t_radius).rotated_mesh()
+                                        radius_largest_ring, m_meshN, t_radius, h_i[0], h_i[3]).rotated_mesh()
         for j in range(ntr[i]):
             x.append(tr_mesh[j][0])
             y.append(tr_mesh[j][1])
@@ -86,7 +91,7 @@ print(len(xyz[0]))
 print(len(xyz[1]))
 print(len(xyz[2]))
 ax.scatter(xyz[0], xyz[1], xyz[2])
-#py.show()
+py.show()
 '''
 def measurement_mesh_full():
     x = [] ; y = [] ; z = []
@@ -119,7 +124,7 @@ def half_mesh_t():
     x = [] ; y = [] ; z = []
     for i in range(len(ntr_half)):
         tr_mesh = rotated_mesh.Rotated_mesh(ntr_half[i], z_middle, h_i[i], t_meshN,
-                                        radius_largest_ring, m_meshN, t_radius).rotated_mesh()
+                                        radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_mesh()
         for j in range(ntr[i]):
             x.append(tr_mesh[j][0])
             y.append(tr_mesh[j][1])
@@ -160,12 +165,12 @@ def directional_m_mesh():
         #tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
         #                                    radius_largest_ring, m_meshN, t_radius).rotated_mesh()
         
-        if i < int(len(ntr) / 2 - 1):
-            rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[2], t_meshN,
-                                            radius_largest_ring, m_meshN, t_radius).rotated_middle_func(0)
-        if i > int(len(ntr) / 2 - 1):
-            rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[2], t_meshN,
-                                            radius_largest_ring, m_meshN, t_radius).rotated_middle_func(1)
+        if i <= int(len(ntr) / 2 - 1):
+            rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+                                            radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_middle_func(0)
+        else:
+            rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
+                                            radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_middle_func(1)
        
         for j in range(ntr[i]):
             xm = rotated_middle[j][0]
@@ -174,17 +179,20 @@ def directional_m_mesh():
             xm_ar.append(xm) ; ym_ar.append(ym) ; zm_ar.append(zm)
             #ax.scatter(xm, ym, zm)
     return xm_ar, ym_ar, zm_ar
+
+
+
 def directional_t_mesh():
     x_ar = []  ; y_ar = []  ; z_ar = []
     
     for i in range(len(ntr)):
     
-        if i < int(len(ntr) / 2 - 1):
+        if i <= int(len(ntr) / 2 - 1):
             xyz_t = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                        radius_largest_ring, m_meshN, t_radius).unrotated_rings(0)
-        if i > int(len(ntr) / 2 - 1):
+                        radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).unrotated_rings(0)
+        else:
             xyz_t = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                        radius_largest_ring, m_meshN, t_radius).unrotated_rings(1)        
+                        radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).unrotated_rings(1)        
         for j in range(ntr[i]):
             
             x = xyz_t[j][0] #; x = np.concatenate((x , half_mesh_m()[0]))
@@ -193,7 +201,7 @@ def directional_t_mesh():
             #ax.scatter(x, y, z)
             x_ar.append(x) ; y_ar.append(y) ; z_ar.append(z)
             
-            #ax.scatter(xm, ym, zm)
+            ax.scatter(x, y, z)
     return x_ar, y_ar, z_ar
 '''
 NOTE!!! May have to raise the transducers to their appropriate height to maintain
@@ -211,8 +219,13 @@ transducers are hopefully indexed such that 0-35 are the bottom transducers and
 
 xyz_t = directional_t_mesh()
 xyz_m = directional_m_mesh()
-ax.scatter(xyz_m[0], xyz_m[1], xyz_m[2])
+ax.scatter(xyz_m[0][0:4], xyz_m[1][0:4], xyz_m[2][0:4])
 py.show()
+
+print(len(xyz_m[0]), 'half mesh x')
+print(len(xyz_m[1]), 'half mesh y')
+print(len(xyz_m[2]), 'half mesh z')
+print(np.shape(xyz_m))
 
 m_meth = matrix_method.Matrix_method(omega, c, amplitude, t_mesh, t_radius,
                                      phase, dens, wavelength)
@@ -222,13 +235,16 @@ m_meth = matrix_method.Matrix_method(omega, c, amplitude, t_mesh, t_radius,
 
 
 #calculate the transfer and excitation matrices
-t_matrix_full = []
+#t_matrix_full = []
 p = np.zeros((len(xyz_m[0][0]),1))
 #print(len(xyz_m[0]), 'xyz_m[0]', len(xyz_m[0][0]), '[0][0]')
 for i in range(sum(ntr)):
     t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
     m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]])  
-       
+    if i == 1:
+        print('measurement points')
+        print( m_points)
+        print(np.shape(m_points))
     #print(t_points)
     #print(np.shape(t_points), 'shape of t points')
     #print(np.shape(m_points), 'shape of m points')
@@ -238,8 +254,9 @@ for i in range(sum(ntr)):
     p_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
     p_r = np.real(p_matrix)
     p[:][:] += p_r[:][:]
-    #print(np.shape(p), 'shape of p')
-print(p)
+print(np.shape(p), 'shape of p')
+#print(p)
+
 '''
     if i == 0:
         t_matrix_full = transfer_matrix
@@ -275,13 +292,13 @@ for i in range(sum(ntr)):
 #p = np.real(pressure_matrix)
 '''
 ###############################################################################
-'''
+
 #xyz_t = half_mesh_t()
 #ax.scatter(xyz_t[0], xyz_t[1], xyz_t[2])
-xyz_mm = half_mesh_m()
-ax.scatter(xyz_mm[0], xyz_mm[1], xyz_mm[2])
-py.show()
-'''
+#xyz_mm = half_mesh_m()
+#ax.scatter(xyz_mm[0][0:10], xyz_mm[1][0:10], xyz_mm[2][0:10])
+#py.show()
+
 
 
 #testing matrix method things using half mesh
@@ -290,8 +307,9 @@ xyz_m = half_mesh_m()
 print(len(xyz_m[0]), 'half mesh x')
 print(len(xyz_m[1]), 'half mesh y')
 print(len(xyz_m[2]), 'half mesh z')
+print(np.shape(xyz_m))
 
-xyz_t = transducer_mesh_full()
+#xyz_t = transducer_mesh_full()
 #xyz_m = measurement_mesh_full()
 
 # params for Matrix_method:
@@ -321,7 +339,7 @@ p = np.real(pressure_matrix)
 # print("\nExcitation/displacement matrix:")
 # print(np.shape(u_matrix))
 print("\nPressure matrix:")
-print(np.shape(pressure_matrix))
+#print(np.shape(pressure_matrix))
 #print(pressure_matrix)
 print("\nReal Part")
 #print(np.shape(p))
@@ -332,6 +350,9 @@ print("\nReal Part")
 #creating the pressure array used for graphing
 xy_size = int(np.sqrt(len(xyz_m[0])))
 graphing_array = np.reshape(p, (xy_size, xy_size))
+print(np.shape(graphing_array), 'graphing array!')
+print(len(graphing_array[0]))
+
 print(graphing_array[0])
 
 '''

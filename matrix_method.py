@@ -48,7 +48,7 @@ class Matrix_method:
     
     #notation is bad again. both n and t represent transisters
     def sn(self): #radius of transducer cell
-        return(2 * self.t_radius / self.t_meshN)**2
+        return(1 * self.t_radius / self.t_meshN)**2
     
     # calculates distance between transducer points (n,t) and measurement points (m)
     # t_points, m_points are 2-D arrays of x,y,z points
@@ -71,7 +71,7 @@ class Matrix_method:
     
     # calculates displacement of each cell s_n due to oscillation from sound waves
     def u_n(self):
-        return self.amplitude * np.exp(1.j * self.excitation_phase_n) 
+        return self.amplitude * np.exp(1.j * self.excitation_phase_n)
         
     # transfer matrix between transducer points (n) and measurement points (m)
     def t_matrix(self, t_points, m_points):
