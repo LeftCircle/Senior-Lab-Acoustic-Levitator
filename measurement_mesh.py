@@ -132,27 +132,19 @@ m = mesh.m_mesh()
 #print(m)  #([x,y,z][len(x,y,z)][len(x,y,z)])
 print(len(m[1][0]))
 print(len(m[2][0]))
-
-
 # create figure for plotting
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.set_xlim3d(-100, 100)
 ax.set_ylim3d(-100, 100)
 ax.set_zlim3d(-5, 210)
-
-
 for i in range(len(m[1][0])):
     ax.scatter(m[0][i], m[1][i], m[2][i])
-
-
-
 N = [ 6, 12, 18, 6, 12, 18]
 Z = [5, 15, 25, 195, 185, 175]
 for i in range(len(N)):
     rot = rotated_mesh.Rotated_mesh(N[i], 100, Z[i] , 15., 10)
     mesh = rot.rotated_mesh()
-
     if i == 0:
         Rsphere = rot.radius_sphere()
     
@@ -163,22 +155,6 @@ for i in range(len(N)):
         ax.scatter(x, y, z)
 plt.show() 
 '''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

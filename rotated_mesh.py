@@ -52,7 +52,7 @@ class Rotated_mesh:
     
     def theta(self):########################################### TEST ANGLE IS HERE ################################################                                
         angle = np.arctan(self.a_i() / (self.z_middle - self.h_i))
-        angle_test = 20 * np.arctan(self.a_i() / (self.z_middle - self.h_i))
+        angle_test = 5 * np.arctan(self.a_i() / (self.z_middle - self.h_i))
         
         return angle
     
@@ -91,9 +91,8 @@ class Rotated_mesh:
             for i in range(self.tr_i):
                 
                 rz = (self.unrotated_xyz_i(trans, i))
-                rz[2] += self.h_largest_upper           
+                rz[2][:] = self.h_largest_upper   #taking out the += and replacing this with = seemed to fix it...        
                 unrotated_array.append(rz) 
-                
          
         return unrotated_array
         
@@ -208,16 +207,11 @@ data is stored as
 '''    
 '''
 ### parameters for defining mesh grid
-
 number_of_mesh_points = 10
-
 # number of transducers in each ring
 N = [ 6, 12, 18, 6, 12, 18]
-
 # height of each ring [mm]
 Z = [5, 15, 25, 195, 185, 175]
-
-
 # array of coordinates for all transducers
 Ntot = np.sum(N)
 '''
@@ -234,7 +228,6 @@ Ntot = np.sum(N)
 
 '''
 transducers_ring.Transducers(input).ring_points()
-
 p = np.zeros([Ntot,3,])
 '''
 

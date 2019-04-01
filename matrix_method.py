@@ -26,25 +26,7 @@ class Matrix_method:
         self.wavelength = wavelength
         
         # TODO: find out what amplitude and excitatin_phase_n actually are
-        
-    
-    '''
-    note - we don't have to calculate both the top force from both the top and
-    the bottom. We actually just need to calculate the force from the bottom
-    to all points in one 2D vertical slice. The slice only needs to go to the 
-    center.
-    If we add the inverse of the force from the bottom array, it is the same as
-    simuilating the top.
-    We can then rotate the result by 2pi about Z to get the 3D behavior due to 
-    symmetry
-    If we want to see one slice, then rotate result by pi about the z to show
-    full behavior
-    '''
-    '''
-    isntead, we could take a slice that goes halfway through some bisection 
-    of the sphere, then rotate that slice by pi in order to show what is occur-
-    ing at any slice in the TinyLev
-    '''
+   
     
     #notation is bad again. both n and t represent transisters
     def sn(self): #radius of transducer cell
@@ -55,12 +37,12 @@ class Matrix_method:
     def r_nm_m(self, t_points, m_points): #r_nm matrix
         m_length = len(m_points[0]) ; t_length = len(t_points[0])
         r_nm_matrix = np.zeros([m_length, t_length], dtype=complex) ###making complex array
-                                                                    #hopefully with real values
+                                                                   
         for i in range(m_length):
-            for k in range(t_length):
+            for k in range(t_length): #potentially change how this is indexed
                 r_nm_matrix[i,k] = np.sqrt((m_points[0][i]-t_points[0][k])**2 + 
                            (m_points[1][i]-t_points[1][k])**2 +
-                           (m_points[2][i]-t_points[2][k])**2) 
+                           (m_points[2][i]-t_points[2][k])**2)  
         return r_nm_matrix
     
     # element of transfer matrix between transducer points (n) and measurement points (m)
@@ -82,11 +64,11 @@ class Matrix_method:
         t_m = np.zeros([m_length, t_length], dtype=complex) #m rows, t collumns
         r_nm = self.r_nm_m(t_points, m_points)
         
+        
         for i in range(m_length): #may not be the most efficient method
             for k in range(t_length): #don't use j bc imaginary numbers
                 t_m[i, k] = self.t_nm(r_nm[i][k]) 
                 
-                #potentially make everything a complex number to account for it?
         return t_m
     
     # assembles displacement matrix
@@ -109,8 +91,8 @@ class Matrix_method:
         # print("Pressure Calculation")
         # print("T Matrix: " + str(np.shape(t_mat)))
         # print("U Matrix: " + str(np.shape(u_mat)))
-        
-        return p_prefactor * np.matmul(t_mat, u_mat) * 1.e-3 # (to convert the mm to m, giving the result in units of Pascals)
+        #print(t_mat[0]) 
+        return p_prefactor * np.matmul(t_mat, u_mat)# * 1.e-3 # (to convert the mm to m, giving the result in units of Pascals)
         
         
         
