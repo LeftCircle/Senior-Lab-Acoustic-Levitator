@@ -1,10 +1,8 @@
 # Senior-Lab-Acoustic-Levitator
-Current goals:
+It works!
 
-1.) Account for directionality of the transducer
+The following code can be used to calculate the pressure resulting from an array of transducers which are arranged as two spherical caps, where each transducer is pointing towards the center point between the transducer arrays. 
 
-- I am not sure if we should place the transducers at x/y == 0 but then put them at their appropriate z heights. 
+The code was created using the matrix method for determining the acoustic radiation force, which can be found here: https://www.researchgate.net/publication/224254694_Matrix_Method_for_Acoustic_Levitation_Simulation
 
-- Currently there is an issue accessing data to get the T matrix and some of the other things for the matrix method. But once this is sorted out it, hopefully everything will fall in place and we will be done! It took less than 15 lines of code to actually do the matrix method before (without directionality), and we are in a similar place as we were before in the sense that all of the data is there but we just have to access it somehow.
-
-2.) Figure out real values for initial conditions
+Currently the code only supports a spherical cap composed of three rings of transducers at three different heights. It also only supports an even number of transducers in each ring. This is due to complications in the matrix method from the transducers being positioned so that they emmit sound at an angle. 
