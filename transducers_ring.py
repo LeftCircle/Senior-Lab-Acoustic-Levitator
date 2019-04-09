@@ -61,66 +61,10 @@ class Transducers:
             transducer_i_x.append(x)
             transducer_i_y.append(y)
             transducer_i_z.append(height)
-        
-            #for graphing one transducer
-        """   
-        fig, ax = plt.subplots()
-        ax.set(xlabel='X', ylabel='Y', aspect=1.0)
-        
-        ax.scatter(transducer_i_x[0], transducer_i_y[0]) 
-        plt.show()  
-        
-        print("called")
-        """
-        
+    
         return transducer_i_x, transducer_i_y, transducer_i_z
     
-
-#Transducers(1, 5, 11).ring_points()
-
-#for testing    
-#how to access data :
 #called three times, once for each ring
-'''
-#how to grab data
-ntr = [6, 12, 18]
-for i in range(len(ntr)): 
-    all_t = Transducers(ntr, 5, 10)
-    print(all_t.z) #broken
-'''
+
     
-'''
-fig, ax = plt.subplots()
-ax.set(xlabel='X', ylabel='Y', aspect=1.0)   
-N = [6,12,18]
-for n in N:
-    
-    all_t = Transducers(n, 5, 10)
-    all_t = all_t.transducer()
-    #[0 = x, 1 = y, 2=z][transducer_i]
-    x = all_t[0][0]  
-    y = all_t[1][0]  
-    
-    for i in range(n):  
-        ax.scatter(all_t[0][i], all_t[1][i]) 
-plt.show()  
-'''
-'''
-fig, ax = plt.subplots()
-ax.set(xlabel='X', ylabel='Y', aspect=1.0)
-#how to grab just one ring:
-all_t = Transducers(6, 5, 1, 50, 0)
-all_t = all_t.transducer()
-x = all_t[0][0]
-y = all_t[1][0]
-ax.scatter(x, y)
-plt.show()
-'''
-
-
-
-
-
-
-
 print("transducers_ring - Done.")

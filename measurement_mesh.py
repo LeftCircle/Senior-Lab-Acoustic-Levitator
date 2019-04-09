@@ -8,6 +8,20 @@ import rotated_mesh
 from mpl_toolkits.mplot3d import Axes3D
 
 # mesh of measurement points in between the transducer rings
+'''
+The half parameter in the below class is used to define what method of the 
+internal mesh we are using. 
+half = 0 : creates a 3D mesh over the entire measurement region (not useful)
+half = 1 : creates a 2D mesh which is a slice of the 3D mesh at y = 0
+           This method is used for visualizing the transducer mesh and the 
+           measurement mesh
+half = 2 : More efficient method than half = 1 for the same results
+half = 3 : used for implementing the directionality of the transducers. This 
+           creates an individual mesh for each transducer, and moves the mesh 
+           in space as opposed to the transducers, accounting for the 
+           directionality of the transducers. This must be used to calculate 
+           the pressure at a given region
+'''
 class M_mesh:
     def __init__(self, radius_largest_ring, h_largest_ring, z_middle, m_mesh_n
                  , half, t_radius):
@@ -19,16 +33,16 @@ class M_mesh:
         self.t_radius = t_radius #radius of one transducer
     def m_mesh(self):
         if self.half == 1:
-            h_m_mesh_n = 2 * self.m_mesh_n
+            h_m_mesh_n = self.m_mesh_n
             x_start = -self.radius_largest_ring
-            x_end   = 0 #might want to do -0.01 but who knows
+            x_end   = 0 
             x = np.linspace(x_start, x_end, h_m_mesh_n)  #finer mesh b/c less points
             
             y = np.zeros(h_m_mesh_n)
             
             #x, y = np.meshgrid(x, y)
-            
-            z_start = self.h_largest_ring + (self.t_radius + 1)#plus 6 ensures not touching mesh transducers
+            #adding the radius+1 to ensure mesh does not collide with transducers
+            z_start = self.h_largest_ring + (self.t_radius + 1)
             z_end   = 2 * self.z_middle - (self.t_radius + 1)
             z = np.linspace(z_start, z_end, h_m_mesh_n)
             
@@ -43,7 +57,7 @@ class M_mesh:
                 
             return x_array, y_array, z_array
         if self.half == 2: #potentially better method for m_mesh half
-            h_m_mesh_n = 2 * self.m_mesh_n  #half mesh mesh number
+            h_m_mesh_n = self.m_mesh_n  
             
             x_end   = self.radius_largest_ring + self.t_radius
             x_start = -x_end
@@ -63,7 +77,7 @@ class M_mesh:
         
         if self.half == 3: #if working with directionality (may break distance calculations)
             #creates a mesh centered at zero
-            h_m_mesh_n = 2 * self.m_mesh_n  #half mesh mesh number
+            h_m_mesh_n = self.m_mesh_n  #half mesh mesh number
             
             x_end   = self.radius_largest_ring + self.t_radius
             x_start = -x_end
@@ -124,38 +138,4 @@ data is accessed by
 [0 = x, 1 = y, 2 = z][array of points]
 The mesh is not necessarily uniform, but it is still a mesh
 '''
-'''
-#testing
-#array sizes need to be the same
-mesh = M_mesh(10, 10, 50, 20)
-m = mesh.m_mesh()
-#print(m)  #([x,y,z][len(x,y,z)][len(x,y,z)])
-print(len(m[1][0]))
-print(len(m[2][0]))
-# create figure for plotting
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.set_xlim3d(-100, 100)
-ax.set_ylim3d(-100, 100)
-ax.set_zlim3d(-5, 210)
-for i in range(len(m[1][0])):
-    ax.scatter(m[0][i], m[1][i], m[2][i])
-N = [ 6, 12, 18, 6, 12, 18]
-Z = [5, 15, 25, 195, 185, 175]
-for i in range(len(N)):
-    rot = rotated_mesh.Rotated_mesh(N[i], 100, Z[i] , 15., 10)
-    mesh = rot.rotated_mesh()
-    if i == 0:
-        Rsphere = rot.radius_sphere()
-    
-    for i in range(N[i]):
-        x = mesh[i][0]
-        y = mesh[i][1]
-        z = mesh[i][2]
-        ax.scatter(x, y, z)
-plt.show() 
-'''
-
-
-
-
+print("measurement_mesh - Done.")
