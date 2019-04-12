@@ -13,20 +13,23 @@ from mpl_toolkits.mplot3d import Axes3D
       
 #initial condition constants
 ntr = [6,12,18,6,12,18]                                
-
+ntr_l = [6,12,18]
+ntr_u = [6,12,18]
 #h_i = [0, 4, 8, 100, 96, 92]
 h_i = [0, 10, 20, 200, 190, 180]
-t_radius = 5                # radius of transducer [mm]
-t_meshN = 30                   # number of points in side length of square that represents transducer
-m_meshN = 60                   # number of points in side length of square that represents transducer
+h_l = [0,10,20] ; h_u = [200, 190, 180]
+t_radius = 4.5                # radius of transducer [mm]
+t_meshN = 10                   # number of points in side length of square that represents transducer
+m_meshN = 20                   # number of points in side length of square that represents transducer
 z_middle = 100
 radius_largest_ring = 30    # radius of transducer ring [mm] guess
 
 omega = 40.e3               # frequency of emitted sound [Hz]
 c = 343.e3                  # wave propogation velocity [mm/s]
 amplitude = 1            # displacement amplitude #also a guess
-amplitude2 = -1
-phase = 0.                  # excitation phase of displacement
+amplitude2 = 1
+phase = np.pi                  # excitation phase of displacement
+phase2 = -np.pi
 dens = 1.225e-9             # density of propogation medium [kg/mm^3]
 wavelength = (c/omega)*(1e-3)# wavelength of emitted sounds [mm]     ### TODO find actual numbers for these 2
 
@@ -86,18 +89,25 @@ def main():
     py.show()
     '''
     
-    
-    
-    #I don't believe this is used
-    def half_mesh_t():
-        x = [] ; y = [] ; z = []
-        for i in range(len(ntr_half)):
-            tr_mesh = rotated_mesh.Rotated_mesh(ntr_half[i], z_middle, h_i[i], t_meshN,
-                                            radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_mesh()
-            for j in range(ntr[i]):
-                x.append(tr_mesh[j][0])
-                y.append(tr_mesh[j][1])
-                z.append(tr_mesh[j][2])
+    def half_mesh_t(lower_or_upper):
+        if lower_or_upper == 0:
+            x = [] ; y = [] ; z = []
+            for i in range(len(ntr_l)):
+                tr_mesh = rotated_mesh.Rotated_mesh(ntr_l[i], z_middle, h_l[i], t_meshN,
+                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_mesh()
+                for j in range(ntr[i]):
+                    x.append(tr_mesh[j][0])
+                    y.append(tr_mesh[j][1])
+                    z.append(tr_mesh[j][2])
+        else:
+            x = [] ; y = [] ; z = []
+            for i in range(len(ntr_u)):
+                tr_mesh = rotated_mesh.Rotated_mesh(ntr_u[i], z_middle, h_u[i], t_meshN,
+                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_mesh()
+                for j in range(ntr[i]):
+                    x.append(tr_mesh[j][0])
+                    y.append(tr_mesh[j][1])
+                    z.append(tr_mesh[j][2])
                 
         # return np.array([x,y,z])
         # return x,y,z
@@ -150,7 +160,7 @@ def main():
                 ym = rotated_middle[j][1]
                 zm = rotated_middle[j][2]  
                 xm_ar.append(xm) ; ym_ar.append(ym) ; zm_ar.append(zm)
-                ax.scatter(xm, ym, zm)
+                #ax.scatter(xm, ym, zm)
         return xm_ar, ym_ar, zm_ar
     
     
@@ -174,7 +184,7 @@ def main():
                 
                 x_ar.append(x) ; y_ar.append(y) ; z_ar.append(z)
                 
-                ax.scatter(x, y, z)
+                #ax.scatter(x, y, z)
         return x_ar, y_ar, z_ar
     py.show()
     '''
@@ -197,7 +207,12 @@ def main():
     m_meth = matrix_method.Matrix_method(omega, c, amplitude, t_mesh, t_radius,
                                          phase, dens, wavelength)
     m_meth2 = matrix_method.Matrix_method(omega, c, amplitude2, t_mesh, t_radius,
-                                         phase, dens, wavelength)
+                                         phase2, dens, wavelength)
+    
+    m_meth_m = matrix_method.Matrix_method(omega, c, amplitude, t_mesh,
+                                radius_largest_ring, phase, dens, wavelength)
+    m_meth_m2 = matrix_method.Matrix_method(omega, c, amplitude2, t_mesh,
+                                radius_largest_ring, phase2, dens, wavelength)
     #calculate the transfer and excitation matrices
     p = np.zeros((len(xyz_m[0][0]),1), dtype = complex)
     
@@ -226,6 +241,10 @@ def main():
     py.show()
     '''
     #Functional pressure matrix with p_flip!
+    #NOTE: according to the matrix method paper, "When the acoustic wave
+    #reaches the transducer, it is reflected, and the constant
+    #ωρc/λ should be replaced by j/λ
+    #I am not entirely sure if our code is doing this, but it appears to be so.
     for k in range(int(len(ntr) / 1)):
         if k == 0:
             i = 0
@@ -235,6 +254,7 @@ def main():
                 i += ntr[k - l - 1]
         if k < 3:        
             for j in range(int(ntr[k] / 2)):
+                #transducer to measurement point
                 t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
                 m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]]) 
                 #ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
@@ -244,11 +264,54 @@ def main():
                 u_matrix = m_meth.u_matrix(t_points)
                 p_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
                 
-                p_r = p_matrix
+                p[:][:] += p_matrix[:][:]
                 
-                p[:][:] += p_r[:][:] 
+                #transducer to transducer to measurement point
+                #matrix method always multiplies by (wpc/leambda)
+                #calculating T^tm (m x n_top) matrix
+                #r stands for reflector and transducer, since we only have
+                #transducers as reflectors
+                tmpts = half_mesh_t(1)
+                t_meshp = ([tmpts[0]] + [tmpts[1]] + [tmpts[2]])
+                transfer_matrix_rm = m_meth.t_matrix(t_meshp, m_points)
+                transfer_matrix_tt = m_meth.t_matrix(t_points, t_meshp)
+                t_matrix_ttm = np.matmul(transfer_matrix_rm, 
+                                         transfer_matrix_tt)
+                p_matrix = 1.j / wavelength * m_meth.p_matrix(t_matrix_ttm,
+                                                              u_matrix) 
                 
+                p[:][:] += p_matrix[:][:]
+                
+                #TM RT TR U additon
+                transfer_matrix_rt = m_meth.t_matrix(t_meshp, t_points)
+                t_matrix_tmrt = np.matmul(transfer_matrix, transfer_matrix_rt)
+                t_matrix_tmrttr = np.matmul(t_matrix_tmrt, transfer_matrix_tt)
+                p_matrix = (1.j / wavelength)**2 * m_meth.p_matrix(t_matrix_tmrttr, 
+                           u_matrix)
+                
+                p[:][:] += p_matrix[:][:]
+                '''
+                #third addition from matrix method paper
+                t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
+                t_m_rmtrrt = np.matmul(t_m_rmtr, transfer_matrix_rt)
+                t_m_rmtrrttr = np.matmul(t_m_rmtrrt, transfer_matrix_tt)
+                p_matrix = (1.j/ wavelength)**3 * m_meth.p_matrix(t_m_rmtrrttr,
+                           u_matrix)
+                p[:][:] += p_matrix[:][:]
+                
+                #fourth addition
+                t_m_tmrt = np.matmul(transfer_matrix, transfer_matrix_rt)
+                t_m_tmrttr = np.matmul(t_m_tmrt, transfer_matrix_tt)
+                t_m_tmrttrrt = np.matmul(t_m_tmrttr, transfer_matrix_rt)
+                t_m_tmrttrrttr = np.matmul(t_m_tmrttrrt, transfer_matrix_tt)
+                p_matrix = (1.j/ wavelength)**4 * m_meth.p_matrix(t_m_tmrttrrttr, 
+                           u_matrix)
+               
+                p[:][:] += p_matrix[:][:]
+                '''
                 i += 1
+                
+                
         if k > 2:
             for j in range(int(ntr[k] / 2)):
                 t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
@@ -259,10 +322,47 @@ def main():
                 transfer_matrix = m_meth2.t_matrix(t_points, m_points)
                 u_matrix = m_meth2.u_matrix(t_points)
                 p_matrix = m_meth2.p_matrix(transfer_matrix, u_matrix)
+                                
+                p[:][:] += p_matrix[:][:] 
                 
-                p_r = p_matrix
+                tmpts = half_mesh_t(0)
+                t_meshp = ([tmpts[0]] + [tmpts[1]] + [tmpts[2]])
+                transfer_matrix_tm = m_meth2.t_matrix(t_meshp, m_points)
+                transfer_matrix_tt = m_meth2.t_matrix(t_points, t_meshp)
+                t_matrix_ttm = np.matmul(transfer_matrix_tm, 
+                                         transfer_matrix_tt)
+                p_matrix = 1.j / wavelength * m_meth2.p_matrix(t_matrix_ttm,
+                                                              u_matrix) 
                 
-                p[:][:] += p_r[:][:] 
+                p[:][:] += p_matrix[:][:]
+                
+                #TM RT TR U additon
+                transfer_matrix_ttr = m_meth2.t_matrix(t_meshp, t_points)
+                t_matrix_tmrt = np.matmul(transfer_matrix, transfer_matrix_ttr)
+                t_matrix_tmrttr = np.matmul(t_matrix_tmrt, transfer_matrix_tt)
+                p_matrix = (1.j / wavelength)**2 * m_meth2.p_matrix(t_matrix_tmrttr, 
+                           u_matrix)
+                
+                p[:][:] += p_matrix[:][:]
+                '''
+                #third addition from matrix method paper
+                t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
+                t_m_rmtrrt = np.matmul(t_m_rmtr, transfer_matrix_rt)
+                t_m_rmtrrttr = np.matmul(t_m_rmtrrt, transfer_matrix_tt)
+                p_matrix = (1.j/ wavelength)**3 * m_meth2.p_matrix(t_m_rmtrrttr,
+                           u_matrix)
+                p[:][:] += p_matrix[:][:]
+                
+                #fourth addition
+                t_m_tmrt = np.matmul(transfer_matrix, transfer_matrix_rt)
+                t_m_tmrttr = np.matmul(t_m_tmrt, transfer_matrix_tt)
+                t_m_tmrttrrt = np.matmul(t_m_tmrttr, transfer_matrix_rt)
+                t_m_tmrttrrttr = np.matmul(t_m_tmrttrrt, transfer_matrix_tt)
+                p_matrix = (1.j/ wavelength)**4 * m_meth2.p_matrix(t_m_tmrttrrttr, 
+                           u_matrix)
+               
+                p[:][:] += p_matrix[:][:]
+                '''
                 
                 i += 1
     

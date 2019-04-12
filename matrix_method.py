@@ -64,6 +64,14 @@ class Matrix_method:
                 
         return t_m
     
+    #transfer matrix from bottom transducers to top transducers
+    #t_points are the points in one transducer. t_mesh is the opposite mesh of
+    #36 transducers
+    def t_matrix_tt(self, t_points, t_mesh):
+        m_length = len(t_mesh[0]) ; t_length = len(t_points[0])
+        t_m = np.zeros([m_length, t_length], dtype = complex)
+        r_nm = self.r_nm_m(t_points, t_mesh)
+        
     # assembles displacement matrix
     def u_matrix(self, t_points):
         t_length = len(t_points[0])
