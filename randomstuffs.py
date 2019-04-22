@@ -13,15 +13,14 @@ from mpl_toolkits.mplot3d import Axes3D
       
 #initial condition constants
 ntr = [6,12,18,6,12,18]                                
-#ntr = [1,0,0,1,0,0]
 ntr_l = [6,12,18]
 ntr_u = [6,12,18]
 #h_i = [0, 4, 8, 100, 96, 92]
 h_i = [0, 10, 20, 200, 190, 180]
 h_l = [0,10,20] ; h_u = [200, 190, 180]
 t_radius = 4.5                # radius of transducer [mm]
-t_meshN = 5                   # number of points in side length of square that represents transducer
-m_meshN = 10                   # number of points in side length of square that represents transducer
+t_meshN = 10                   # number of points in side length of square that represents transducer
+m_meshN = 15                   # number of points in side length of square that represents transducer
 z_middle = 100
 radius_largest_ring = 30    # radius of transducer ring [mm] guess
 
@@ -83,9 +82,9 @@ def main():
         #return np.array([x,y,z])
         return np.concatenate(x), np.concatenate(y), np.concatenate(z)
     
-    '''
-    #data is super easy to grab from ^^
-    xyz = transducer_mesh_full()
+    ''' 
+    data is super easy to grab from ^^
+    xyz = measurement_mesh_full()
     ax.scatter(xyz[0], xyz[1], xyz[2])
     py.show()
     '''
@@ -194,8 +193,7 @@ def main():
     '''
     #now calculating pressure matrix using moved interior matrices and transducers
     #at the origin
-    #xyz_t = transducer_mesh_full()
-    #xyz_m = half_mesh_m()
+    
     xyz_t = directional_t_mesh()
     xyz_m = directional_m_mesh()
     #ax.scatter(xyz_m[0][0:4], xyz_m[1][0:4], xyz_m[2][0:4])
@@ -217,8 +215,8 @@ def main():
                                 radius_largest_ring, phase2, dens, wavelength)
     #calculate the transfer and excitation matrices
     p = np.zeros((len(xyz_m[0][0]),1), dtype = complex)
-    #p = np.zeros((len(xyz_m[0]),1), dtype = complex)
     
+    '''
     #original method for calculating the pressure. The issue is that this has all
     #of the transducers emitting sound from the bottom left. This is due to the 
     #matrix multiplication yielding the same number for half of the transducers
@@ -227,8 +225,8 @@ def main():
             
         t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
         m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]]) 
-        ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
-        ax.scatter(m_points[0], m_points[1], m_points[2])
+        #ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
+        #ax.scatter(m_points[0], m_points[1], m_points[2])
         
         # NOTE: before we were concatenating all of the x/y/z to separate arrays
         transfer_matrix = m_meth.t_matrix(t_points, m_points)
@@ -238,15 +236,15 @@ def main():
         #for some reason the p_matrix is the same regardless of orientation of 
         #the m_mesh. Could be because of matrix multiplication
         #to fix just rotate every other? array by 90 degrees?
-        p_r = p_matrix
+        p_r = np.real(p_matrix)
         p[:][:] += p_r[:][:]
-    p = np.absolute(p)
     py.show()
     '''
     #Functional pressure matrix with p_flip!
     #NOTE: according to the matrix method paper, "When the acoustic wave
     #reaches the transducer, it is reflected, and the constant
     #ωρc/λ should be replaced by j/λ
+    #I am not entirely sure if our code is doing this, but it appears to be so.
     for k in range(int(len(ntr) / 1)):
         if k == 0:
             i = 0
@@ -255,13 +253,12 @@ def main():
             for l in range(k):
                 i += ntr[k - l - 1]
         if k < 3:        
-            for j in range(int(ntr[k] / 1)):
+            for j in range(int(ntr[k] / 2)):
                 #transducer to measurement point
                 t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
                 m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]]) 
-                
-                ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
-                ax.scatter(m_points[0], m_points[1], m_points[2])
+                #ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
+                #ax.scatter(m_points[0], m_points[1], m_points[2])
                 
                 transfer_matrix = m_meth.t_matrix(t_points, m_points)
                 u_matrix = m_meth.u_matrix(t_points)
@@ -269,7 +266,6 @@ def main():
                 
                 p[:][:] += p_matrix[:][:]
                 
-    
                 #transducer to transducer to measurement point
                 #matrix method always multiplies by (wpc/leambda)
                 #calculating T^tm (m x n_top) matrix
@@ -295,8 +291,6 @@ def main():
                 
                 p[:][:] += p_matrix[:][:]
                 '''
-    '''
-    
                 #third addition from matrix method paper
                 t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
                 t_m_rmtrrt = np.matmul(t_m_rmtr, transfer_matrix_rt)
@@ -314,14 +308,12 @@ def main():
                            u_matrix)
                
                 p[:][:] += p_matrix[:][:]
-                
                 '''
-    '''
                 i += 1
-    '''
-    '''
+                
+                
         if k > 2:
-            for j in range(int(ntr[k] / 1)):
+            for j in range(int(ntr[k] / 2)):
                 t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
                 m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]]) 
                 #ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
@@ -332,8 +324,7 @@ def main():
                 p_matrix = m_meth2.p_matrix(transfer_matrix, u_matrix)
                                 
                 p[:][:] += p_matrix[:][:] 
-    
-    
+                
                 tmpts = half_mesh_t(0)
                 t_meshp = ([tmpts[0]] + [tmpts[1]] + [tmpts[2]])
                 transfer_matrix_tm = m_meth2.t_matrix(t_meshp, m_points)
@@ -353,8 +344,7 @@ def main():
                            u_matrix)
                 
                 p[:][:] += p_matrix[:][:]
-    '''
-    '''
+                '''
                 #third addition from matrix method paper
                 t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
                 t_m_rmtrrt = np.matmul(t_m_rmtr, transfer_matrix_rt)
@@ -373,12 +363,11 @@ def main():
                
                 p[:][:] += p_matrix[:][:]
                 '''
-    
-    '''    
+                
                 i += 1
     
     p = np.absolute(p) #obtaining the modulus of the pressure
-    '''    
+    
     xyz_m = half_mesh_m()
     
     # Plot the pressure map
@@ -389,7 +378,6 @@ def main():
     graphing_array = np.reshape(p, (xy_size, xy_size))
     print(np.shape(graphing_array), 'shape of graphing array')
     #print(graphing_array)
-    '''
     p_flipped = np.empty_like(graphing_array) #discussed in LaTeX document
     for i in range(len(graphing_array[0])):
         for j in range(int(len(graphing_array[0]) / 2)):
@@ -398,7 +386,7 @@ def main():
     
     graphing_array = [graphing_array + p_flipped for graphing_array,
                       p_flipped in zip(graphing_array, p_flipped)]   
-    '''
+    
     #these will be the x and z values of our M space...must be a mesh though
     #so the space before concatenated!
     # NOTE: ONLY WORKS FOR HALF MESH
@@ -416,4 +404,4 @@ def main():
 
 main()
 
-print("main_test - Done.")
+print("acoustic_test - Done.")

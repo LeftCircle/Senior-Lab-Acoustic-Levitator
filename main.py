@@ -15,13 +15,18 @@ from mpl_toolkits.mplot3d import Axes3D
 ntr = [6,12,18,6,12,18]                                
 ntr_l = [6,12,18]
 ntr_u = [6,12,18]
+h_i = [0, 0.8, 1.6, 119.1, 118.3, 117.5]
+h_l = [0, 0.8, 1.6] ; h_u = [119.1, 118.3, 117.5]
+r_i = [10.52, 21.35, 30.62, 10.52, 21.35, 30.62]
+r_l = [10.52, 21.35, 30.62]; r_u = r_l
 #h_i = [0, 4, 8, 100, 96, 92]
-h_i = [0, 10, 20, 200, 190, 180]
-h_l = [0,10,20] ; h_u = [200, 190, 180]
+#h_i = [0, 10, 20, 200, 190, 180]
+#h_l = [0,10,20] ; h_u = [200, 190, 180]
 t_radius = 4.5                # radius of transducer [mm]
 t_meshN = 10                   # number of points in side length of square that represents transducer
-m_meshN = 20                   # number of points in side length of square that represents transducer
-z_middle = 100
+m_meshN = 25 
+z_middle = 59.55                  # number of points in side length of square that represents transducer
+#z_middle = 100
 radius_largest_ring = 30    # radius of transducer ring [mm] guess
 
 omega = 40.e3               # frequency of emitted sound [Hz]
@@ -29,7 +34,7 @@ c = 343.e3                  # wave propogation velocity [mm/s]
 amplitude = 1            # displacement amplitude #also a guess
 amplitude2 = 1
 phase = np.pi                  # excitation phase of displacement
-phase2 = -np.pi
+phase2 = 0
 dens = 1.225e-9             # density of propogation medium [kg/mm^3]
 wavelength = (c/omega)*(1e-3)# wavelength of emitted sounds [mm]     ### TODO find actual numbers for these 2
 
@@ -47,7 +52,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.set_xlim3d(-100, 100)
 ax.set_ylim3d(-100, 100)
-ax.set_zlim3d(0, 210)
+ax.set_zlim3d(0, 120)
 
 def main():
     # Accessing the data:
@@ -58,7 +63,7 @@ def main():
         for i in range(len(ntr)):
             
             tr_mesh = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                                            radius_largest_ring, m_meshN, t_radius, h_i[0], h_i[3]).rotated_mesh()
+                                            radius_largest_ring, m_meshN, t_radius, h_i[0], h_i[3], r_i[i]).rotated_mesh()
             for j in range(ntr[i]):
                 x.append(tr_mesh[j][0])
                 y.append(tr_mesh[j][1])
@@ -82,9 +87,9 @@ def main():
         #return np.array([x,y,z])
         return np.concatenate(x), np.concatenate(y), np.concatenate(z)
     
-    ''' 
-    data is super easy to grab from ^^
-    xyz = measurement_mesh_full()
+    '''
+    #data is super easy to grab from ^^
+    xyz = transducer_mesh_full()
     ax.scatter(xyz[0], xyz[1], xyz[2])
     py.show()
     '''
@@ -94,7 +99,7 @@ def main():
             x = [] ; y = [] ; z = []
             for i in range(len(ntr_l)):
                 tr_mesh = rotated_mesh.Rotated_mesh(ntr_l[i], z_middle, h_l[i], t_meshN,
-                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_mesh()
+                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3], r_i[i]).rotated_mesh()
                 for j in range(ntr[i]):
                     x.append(tr_mesh[j][0])
                     y.append(tr_mesh[j][1])
@@ -103,7 +108,7 @@ def main():
             x = [] ; y = [] ; z = []
             for i in range(len(ntr_u)):
                 tr_mesh = rotated_mesh.Rotated_mesh(ntr_u[i], z_middle, h_u[i], t_meshN,
-                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_mesh()
+                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3], r_i[i]).rotated_mesh()
                 for j in range(ntr[i]):
                     x.append(tr_mesh[j][0])
                     y.append(tr_mesh[j][1])
@@ -130,14 +135,14 @@ def main():
         # return x,y,z
         return np.concatenate(x), np.concatenate(y), np.concatenate(z)
     
-    '''
+    
     #simple combined graph
     xyz_t = transducer_mesh_full()
     ax.scatter(xyz_t[0], xyz_t[1], xyz_t[2])
     xyz_m = half_mesh_m()
     ax.scatter(xyz_m[0], xyz_m[1], xyz_m[2])
     py.show()
-    '''
+    
     ################################################################################
     '''
     will be used for directionality. Must also have half_mesh_m ^^^^
@@ -150,10 +155,10 @@ def main():
                     
             if i <= int(len(ntr) / 2 - 1):
                 rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_middle_func(0)
+                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3], r_i[i]).rotated_middle_func(0)
             else:
                 rotated_middle = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).rotated_middle_func(1)
+                                                radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3], r_i[i]).rotated_middle_func(1)
            
             for j in range(ntr[i]):
                 xm = rotated_middle[j][0]
@@ -172,10 +177,10 @@ def main():
         
             if i <= int(len(ntr) / 2 - 1):
                 xyz_t = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                            radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).unrotated_rings(0)
+                            radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3], r_i[i]).unrotated_rings(0)
             else:
                 xyz_t = rotated_mesh.Rotated_mesh(ntr[i], z_middle, h_i[i], t_meshN,
-                            radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3]).unrotated_rings(1)        
+                            radius_largest_ring, m_meshN, t_radius, h_i[2], h_i[3], r_i[i]).unrotated_rings(1)        
             for j in range(ntr[i]):
                 
                 x = xyz_t[j][0] #; x = np.concatenate((x , half_mesh_m()[0]))
@@ -236,15 +241,15 @@ def main():
         #for some reason the p_matrix is the same regardless of orientation of 
         #the m_mesh. Could be because of matrix multiplication
         #to fix just rotate every other? array by 90 degrees?
-        p_r = np.real(p_matrix)
+        p_r = p_matrix
         p[:][:] += p_r[:][:]
+    p = np.absolute(p)
     py.show()
     '''
     #Functional pressure matrix with p_flip!
     #NOTE: according to the matrix method paper, "When the acoustic wave
     #reaches the transducer, it is reflected, and the constant
     #ωρc/λ should be replaced by j/λ
-    #I am not entirely sure if our code is doing this, but it appears to be so.
     for k in range(int(len(ntr) / 1)):
         if k == 0:
             i = 0
@@ -271,6 +276,7 @@ def main():
                 #calculating T^tm (m x n_top) matrix
                 #r stands for reflector and transducer, since we only have
                 #transducers as reflectors
+                #m_points_c = half_mesh_m()
                 tmpts = half_mesh_t(1)
                 t_meshp = ([tmpts[0]] + [tmpts[1]] + [tmpts[2]])
                 transfer_matrix_rm = m_meth.t_matrix(t_meshp, m_points)
@@ -290,6 +296,7 @@ def main():
                            u_matrix)
                 
                 p[:][:] += p_matrix[:][:]
+                
                 '''
                 #third addition from matrix method paper
                 t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
@@ -309,11 +316,13 @@ def main():
                
                 p[:][:] += p_matrix[:][:]
                 '''
+    
                 i += 1
                 
                 
         if k > 2:
             for j in range(int(ntr[k] / 2)):
+                #m_points_c = half_mesh_m()
                 t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
                 m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]]) 
                 #ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
@@ -344,6 +353,7 @@ def main():
                            u_matrix)
                 
                 p[:][:] += p_matrix[:][:]
+                
                 '''
                 #third addition from matrix method paper
                 t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
@@ -363,6 +373,7 @@ def main():
                
                 p[:][:] += p_matrix[:][:]
                 '''
+    
                 
                 i += 1
     
@@ -404,4 +415,4 @@ def main():
 
 main()
 
-print("acoustic_test - Done.")
+print("main - Done.")

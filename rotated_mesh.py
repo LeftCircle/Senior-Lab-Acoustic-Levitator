@@ -10,7 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class Rotated_mesh:
     def __init__(self, tr_i, z_middle, h_i, mesh_num, radius_largest_ring,
-                 m_meshN, t_radius, height_largest_ring, h_largest_upper):
+                 m_meshN, t_radius, height_largest_ring, h_largest_upper, r_i):
         self.tr_i = tr_i            # transisters in i
         self.z_middle = z_middle    # midpoint of TinyLev
         self.h_i = h_i              # height of ring i  == z from transducers_ring1
@@ -20,6 +20,7 @@ class Rotated_mesh:
         self.t_radius = t_radius
         self.height_largest_ring = height_largest_ring
         self.h_largest_upper = h_largest_upper
+        self.r_i = r_i
         
     
     def origin_mesh(self):
@@ -41,8 +42,8 @@ class Rotated_mesh:
     # calculated based off known quantities
     
     def theta(self):                               
-        angle = np.arctan(self.a_i() / (self.z_middle - self.h_i))
-        angle_test = 5 * np.arctan(self.a_i() / (self.z_middle - self.h_i))
+        angle = np.arctan(self.r_i / (self.z_middle - self.h_i))
+        angle_test = 20 * np.arctan(self.r_i / (self.z_middle - self.h_i))
         
         return angle
     
@@ -100,8 +101,8 @@ class Rotated_mesh:
             ry = rotate.rotation_y(transducer_array, -self.theta())   
             rz = rotate.rotation_z(ry, self.alpha()[i])
             #now translate
-            rz[0] += self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
-            rz[1] += self.a_i() * np.sin(self.alpha()[i]) 
+            rz[0] += self.r_i * np.cos(self.alpha()[i]) #was aprox_a_i 
+            rz[1] += self.r_i * np.sin(self.alpha()[i]) 
             #and vertical translation
             rz[2] += self.h_i
             
@@ -156,8 +157,8 @@ class Rotated_mesh:
                 ry = rotate.rotation_y(m_mesh, self.theta())   
                 rz = rotate.rotation_z(ry, -self.alpha()[i])
                 #now translate
-                rz[0] -= self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
-                rz[1] -= self.a_i() * np.sin(self.alpha()[i]) 
+                rz[0] -= self.r_i * np.cos(self.alpha()[i]) #was aprox_a_i 
+                rz[1] -= self.r_i * np.sin(self.alpha()[i]) 
                 #and vertical translation
                 rz[2] +=  self.z_middle - self.h_i 
                 
@@ -173,8 +174,8 @@ class Rotated_mesh:
                 ry = rotate.rotation_y(m_mesh, self.theta())   
                 rz = rotate.rotation_z(ry, -self.alpha()[i])
                 #now translate
-                rz[0] -= self.a_i() * np.cos(self.alpha()[i]) #was aprox_a_i 
-                rz[1] -= self.a_i() * np.sin(self.alpha()[i]) 
+                rz[0] -= self.r_i * np.cos(self.alpha()[i]) #was aprox_a_i 
+                rz[1] -= self.r_i * np.sin(self.alpha()[i]) 
                 #and vertical translation
                 rz[2] +=  self.z_middle + (self.h_largest_upper - self.h_i)
                 
