@@ -24,13 +24,13 @@ r_l = [10.52, 21.35, 30.62]; r_u = r_l
 #h_i = [0, 10, 20, 200, 190, 180]
 #h_l = [0,10,20] ; h_u = [200, 190, 180]
 t_radius = 4.5                # radius of transducer [mm]
-t_meshN = 15                   # number of points in side length of square that represents transducer
-m_meshN = 50 
+t_meshN = 5                   # number of points in side length of square that represents transducer
+m_meshN = 31 
 z_middle = 59.55                  # number of points in side length of square that represents transducer
 #z_middle = 100
 radius_largest_ring = 30    # radius of transducer ring [mm] guess
 
-omega = 40.e3               # frequency of emitted sound [Hz]
+omega = 2*np.pi*40.e3               # frequency of emitted sound [Hz]
 c = 343.e3                  # wave propogation velocity [mm/s]
 amplitude = 1            # displacement amplitude #also a guess
 amplitude2 = 1
@@ -207,7 +207,7 @@ def main():
     m_meth_m2 = matrix_method.Matrix_method(omega, c, amplitude2, t_mesh,
                                 radius_largest_ring, phase2, dens, wavelength)
     #calculate the transfer and excitation matrices
-    p = np.zeros((len(xyz_m[0][0]),1), dtype = complex)
+    p = np.zeros((len(xyz_m[0]),1), dtype = complex)
     
     
     #matrix method like what is done in the paper, assuming that the top and
@@ -215,7 +215,7 @@ def main():
             
     t_pointsl = half_mesh_t(0)  
     t_pointsu = half_mesh_t(1)
-    m_points = directional_m_mesh() 
+    m_points = half_mesh_m() 
     #ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
     #ax.scatter(m_points[0], m_points[1], m_points[2])
     
@@ -232,164 +232,52 @@ def main():
     t_matrix_ttm = np.matmul(transfer_matrix_rm, 
                              transfer_matrix_tt)
     p_matrix = 1.j / wavelength * m_meth.p_matrix(t_matrix_ttm,
-                                                  u_matrix) 
+                                                  u_matrixl) 
     
     p[:][:] += p_matrix[:][:]
     
     #TM RT TR U additon
-    transfer_matrix_rt = m_meth.t_matrix(t_pointsu, t_points)
-    t_matrix_tmrt = np.matmul(transfer_matrix, transfer_matrix_rt)
+    transfer_matrix_rt = m_meth.t_matrix(t_pointsu, t_pointsl)
+    t_matrix_tmrt = np.matmul(transfer_matrixl, transfer_matrix_rt)
     t_matrix_tmrttr = np.matmul(t_matrix_tmrt, transfer_matrix_tt)
     p_matrix = (1.j / wavelength)**2 * m_meth.p_matrix(t_matrix_tmrttr, 
-               u_matrix)
+               u_matrixl)
     
     p[:][:] += p_matrix[:][:]
     
     
     #upper transfer matrices and pressure
-    transfer_matrixl = m_meth.t_matrix(t_pointsl, m_points)
-    u_matrixl = m_meth.u_matrix(t_pointsl)
-    p_matrixl = m_meth.p_matrix(transfer_matrixl, u_matrixl)
+    transfer_matrixu = m_meth2.t_matrix(t_pointsu, m_points)
+    u_matrixu = m_meth2.u_matrix(t_pointsu)
+    p_matrixu = m_meth2.p_matrix(transfer_matrixl, u_matrixl)
     
-    p[:][:] += p_matrixl[:][:]
+    p[:][:] += p_matrixu[:][:]
+    
+    #t1 to t2, t2 to middle    
+    transfer_matrix_rm = m_meth2.t_matrix(t_pointsl, m_points)
+    transfer_matrix_tt = m_meth2.t_matrix(t_pointsu, t_pointsl)
+    t_matrix_ttm = np.matmul(transfer_matrix_rm, 
+                             transfer_matrix_tt)
+    p_matrix = 1.j / wavelength * m_meth.p_matrix(t_matrix_ttm,
+                                                  u_matrixu) 
+    
+    p[:][:] += p_matrix[:][:]
+    
+    #TM RT TR U additon
+    transfer_matrix_rt = m_meth2.t_matrix(t_pointsl, t_pointsu)
+    t_matrix_tmrt = np.matmul(transfer_matrixu, transfer_matrix_rt)
+    t_matrix_tmrttr = np.matmul(t_matrix_tmrt, transfer_matrix_tt)
+    p_matrix = (1.j / wavelength)**2 * m_meth.p_matrix(t_matrix_tmrttr, 
+               u_matrixu)
+    
+    p[:][:] += p_matrix[:][:]
     
     
     #final pressure calculation
     p = np.absolute(p)
     py.show()
     
-    #Functional pressure matrix with p_flip!
-    #NOTE: according to the matrix method paper, "When the acoustic wave
-    #reaches the transducer, it is reflected, and the constant
-    #ωρc/λ should be replaced by j/λ
-    for k in range(int(len(ntr) / 1)):
-        if k == 0:
-            i = 0
-        else:
-            i = 0
-            for l in range(k):
-                i += ntr[k - l - 1]
-        if k < 3:        
-            for j in range(int(ntr[k] / 2)):
-                #transducer to measurement point
-                t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
-                m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]]) 
-                #ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
-                #ax.scatter(m_points[0], m_points[1], m_points[2])
-                
-                transfer_matrix = m_meth.t_matrix(t_points, m_points)
-                u_matrix = m_meth.u_matrix(t_points)
-                p_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
-                
-                p[:][:] += p_matrix[:][:]
-                
-                #transducer to transducer to measurement point
-                #matrix method always multiplies by (wpc/leambda)
-                #calculating T^tm (m x n_top) matrix
-                #r stands for reflector and transducer, since we only have
-                #transducers as reflectors
-                #m_points_c = half_mesh_m()
-                tmpts = half_mesh_t(1)
-                t_meshp = ([tmpts[0]] + [tmpts[1]] + [tmpts[2]])
-                transfer_matrix_rm = m_meth.t_matrix(t_meshp, m_points)
-                transfer_matrix_tt = m_meth.t_matrix(t_points, t_meshp)
-                t_matrix_ttm = np.matmul(transfer_matrix_rm, 
-                                         transfer_matrix_tt)
-                p_matrix = 1.j / wavelength * m_meth.p_matrix(t_matrix_ttm,
-                                                              u_matrix) 
-                
-                p[:][:] += p_matrix[:][:]
-                
-                #TM RT TR U additon
-                transfer_matrix_rt = m_meth.t_matrix(t_meshp, t_points)
-                t_matrix_tmrt = np.matmul(transfer_matrix, transfer_matrix_rt)
-                t_matrix_tmrttr = np.matmul(t_matrix_tmrt, transfer_matrix_tt)
-                p_matrix = (1.j / wavelength)**2 * m_meth.p_matrix(t_matrix_tmrttr, 
-                           u_matrix)
-                
-                p[:][:] += p_matrix[:][:]
-                
-                '''
-                #third addition from matrix method paper
-                t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
-                t_m_rmtrrt = np.matmul(t_m_rmtr, transfer_matrix_rt)
-                t_m_rmtrrttr = np.matmul(t_m_rmtrrt, transfer_matrix_tt)
-                p_matrix = (1.j/ wavelength)**3 * m_meth.p_matrix(t_m_rmtrrttr,
-                           u_matrix)
-                p[:][:] += p_matrix[:][:]
-                
-                #fourth addition
-                t_m_tmrt = np.matmul(transfer_matrix, transfer_matrix_rt)
-                t_m_tmrttr = np.matmul(t_m_tmrt, transfer_matrix_tt)
-                t_m_tmrttrrt = np.matmul(t_m_tmrttr, transfer_matrix_rt)
-                t_m_tmrttrrttr = np.matmul(t_m_tmrttrrt, transfer_matrix_tt)
-                p_matrix = (1.j/ wavelength)**4 * m_meth.p_matrix(t_m_tmrttrrttr, 
-                           u_matrix)
-               
-                p[:][:] += p_matrix[:][:]
-                '''
     
-                i += 1
-                
-                
-        if k > 2:
-            for j in range(int(ntr[k] / 2)):
-                #m_points_c = half_mesh_m()
-                t_points = ([xyz_t[0][i]] + [xyz_t[1][i]] + [xyz_t[2][i]])  
-                m_points = ([xyz_m[0][i]] + [xyz_m[1][i]] + [xyz_m[2][i]]) 
-                #ax.scatter(xyz_t[0][i], xyz_t[1][i], xyz_t[2][i])
-                #ax.scatter(m_points[0], m_points[1], m_points[2])
-                
-                transfer_matrix = m_meth2.t_matrix(t_points, m_points)
-                u_matrix = m_meth2.u_matrix(t_points)
-                p_matrix = m_meth2.p_matrix(transfer_matrix, u_matrix)
-                                
-                p[:][:] += p_matrix[:][:] 
-                
-                tmpts = half_mesh_t(0)
-                t_meshp = ([tmpts[0]] + [tmpts[1]] + [tmpts[2]])
-                transfer_matrix_tm = m_meth2.t_matrix(t_meshp, m_points)
-                transfer_matrix_tt = m_meth2.t_matrix(t_points, t_meshp)
-                t_matrix_ttm = np.matmul(transfer_matrix_tm, 
-                                         transfer_matrix_tt)
-                p_matrix = 1.j / wavelength * m_meth2.p_matrix(t_matrix_ttm,
-                                                              u_matrix) 
-                
-                p[:][:] += p_matrix[:][:]
-                
-                #TM RT TR U additon
-                transfer_matrix_ttr = m_meth2.t_matrix(t_meshp, t_points)
-                t_matrix_tmrt = np.matmul(transfer_matrix, transfer_matrix_ttr)
-                t_matrix_tmrttr = np.matmul(t_matrix_tmrt, transfer_matrix_tt)
-                p_matrix = (1.j / wavelength)**2 * m_meth2.p_matrix(t_matrix_tmrttr, 
-                           u_matrix)
-                
-                p[:][:] += p_matrix[:][:]
-                
-                '''
-                #third addition from matrix method paper
-                t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
-                t_m_rmtrrt = np.matmul(t_m_rmtr, transfer_matrix_rt)
-                t_m_rmtrrttr = np.matmul(t_m_rmtrrt, transfer_matrix_tt)
-                p_matrix = (1.j/ wavelength)**3 * m_meth2.p_matrix(t_m_rmtrrttr,
-                           u_matrix)
-                p[:][:] += p_matrix[:][:]
-                
-                #fourth addition
-                t_m_tmrt = np.matmul(transfer_matrix, transfer_matrix_rt)
-                t_m_tmrttr = np.matmul(t_m_tmrt, transfer_matrix_tt)
-                t_m_tmrttrrt = np.matmul(t_m_tmrttr, transfer_matrix_rt)
-                t_m_tmrttrrttr = np.matmul(t_m_tmrttrrt, transfer_matrix_tt)
-                p_matrix = (1.j/ wavelength)**4 * m_meth2.p_matrix(t_m_tmrttrrttr, 
-                           u_matrix)
-               
-                p[:][:] += p_matrix[:][:]
-                '''
-    
-                
-                i += 1
-    
-    p = np.absolute(p) #obtaining the modulus of the pressure
     
     xyz_m = half_mesh_m()
     
@@ -401,14 +289,6 @@ def main():
     graphing_array = np.reshape(p, (xy_size, xy_size))
     print(np.shape(graphing_array), 'shape of graphing array')
     #print(graphing_array)
-    p_flipped = np.empty_like(graphing_array) #discussed in LaTeX document
-    for i in range(len(graphing_array[0])):
-        for j in range(int(len(graphing_array[0]) / 2)):
-            p_flipped[i][j] = graphing_array[i][int(len(graphing_array) - 1 - j)]
-            p_flipped[i][int(len(graphing_array) - 1 - j)] = graphing_array[i][j]
-    
-    graphing_array = [graphing_array + p_flipped for graphing_array,
-                      p_flipped in zip(graphing_array, p_flipped)]   
     
     #these will be the x and z values of our M space...must be a mesh though
     #so the space before concatenated!
