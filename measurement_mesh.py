@@ -42,8 +42,8 @@ class M_mesh:
             
             #x, y = np.meshgrid(x, y)
             #adding the radius+1 to ensure mesh does not collide with transducers
-            z_start = self.h_largest_ring + (self.t_radius + 1)
-            z_end   = 2 * self.z_middle - (self.t_radius + 1)
+            z_start = self.h_largest_ring #+ (self.t_radius + 1)
+            z_end   = 2 * self.z_middle #- (self.t_radius + 1)
             z = np.linspace(z_start, z_end, h_m_mesh_n)
             
             # arrays of 3-D mesh points
@@ -87,7 +87,7 @@ class M_mesh:
             
             #x, y = np.meshgrid(x, y)
             
-            z_start = self.h_largest_ring + (self.t_radius + 1)#plus 6 ensures not touching mesh transducers
+            z_start = self.h_largest_ring #+ (self.t_radius + 1)#plus 6 ensures not touching mesh transducers
             z_end   = 2 * self.z_middle - z_start
             height = z_end - z_start
             z_start = -(height / 2) ; z_end = height / 2

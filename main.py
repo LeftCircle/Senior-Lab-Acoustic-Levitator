@@ -23,8 +23,8 @@ r_l = [10.52, 21.35, 30.62]; r_u = r_l
 #h_i = [0, 10, 20, 200, 190, 180]
 #h_l = [0,10,20] ; h_u = [200, 190, 180]
 t_radius = 4.5                # radius of transducer [mm]
-t_meshN = 10                   # number of points in side length of square that represents transducer
-m_meshN = 25 
+t_meshN = 15                   # number of points in side length of square that represents transducer
+m_meshN = 50 
 z_middle = 59.55                  # number of points in side length of square that represents transducer
 #z_middle = 100
 radius_largest_ring = 30    # radius of transducer ring [mm] guess
@@ -405,6 +405,7 @@ def main():
     Z = np.reshape(xyz_m[2], (xy_size, xy_size))
     
     #print(np.shape(X), np.shape(Z), 'shapes')
+    
     fig = pyplot.figure(figsize=(11,7), dpi=100)
     pyplot.contourf(X, Z, graphing_array, alpha=0.5, cmap=cm.viridis)
     pyplot.colorbar()
@@ -412,6 +413,18 @@ def main():
     #pyplot.streamplot(X, Z, u, v)
     pyplot.xlabel('X')
     pyplot.ylabel('Z');
+    
+    #finding the center points used for graphing
+    centerline = []
+    midpoint = int(m_meshN / 2)
+    height = np.linspace(h_l[-1], h_u[-1], m_meshN)
+    for i in range(len(graphing_array[0])):
+        centerline.append(graphing_array[i][midpoint])
+        
+    figc, axc = plt.subplots()
+    axc.plot(centerline, height)
+    py.show()
+    print(centerline)
 
 main()
 
