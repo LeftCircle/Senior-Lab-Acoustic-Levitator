@@ -42,8 +42,8 @@ class M_mesh:
             
             #x, y = np.meshgrid(x, y)
             #adding the radius+1 to ensure mesh does not collide with transducers
-            z_start = self.h_largest_ring #+ (self.t_radius + 1)
-            z_end   = 2 * self.z_middle #- (self.t_radius + 1)
+            z_start = self.h_largest_ring + (self.t_radius + 1)
+            z_end   = 2 * self.z_middle - (self.t_radius + 1)
             z = np.linspace(z_start, z_end, h_m_mesh_n)
             
             # arrays of 3-D mesh points
@@ -61,7 +61,7 @@ class M_mesh:
             
             x_end   = self.radius_largest_ring + self.t_radius
             x_start = -x_end
-            x = np.linspace(x_start, x_end, h_m_mesh_n)  #finer mesh b/c less points
+            x = np.linspace(x_start, x_end, h_m_mesh_n)  
             
             y = np.zeros(h_m_mesh_n)
             

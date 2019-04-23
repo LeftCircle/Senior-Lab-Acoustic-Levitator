@@ -24,11 +24,11 @@ r_l = [10.52, 21.35, 30.62]; r_u = r_l
 #h_i = [0, 10, 20, 200, 190, 180]
 #h_l = [0,10,20] ; h_u = [200, 190, 180]
 t_radius = 4.5                # radius of transducer [mm]
-t_meshN = 5                   # number of points in side length of square that represents transducer
-m_meshN = 31 
+t_meshN = 10                   # number of points in side length of square that represents transducer
+m_meshN = 50 
 z_middle = 59.55                  # number of points in side length of square that represents transducer
 #z_middle = 100
-radius_largest_ring = 30    # radius of transducer ring [mm] guess
+radius_largest_ring = 30.62    # radius of transducer ring [mm] guess
 
 omega = 2*np.pi*40.e3               # frequency of emitted sound [Hz]
 c = 343.e3                  # wave propogation velocity [mm/s]
@@ -37,7 +37,7 @@ amplitude2 = 1
 phase = np.pi                  # excitation phase of displacement
 phase2 = 0
 dens = 1.225e-9             # density of propogation medium [kg/mm^3]
-wavelength = (c/omega)*(1e-3)# wavelength of emitted sounds [mm]     ### TODO find actual numbers for these 2
+wavelength = (c/omega)# wavelength of emitted sounds [mm]     ### TODO find actual numbers for these 2
 
 
 t_mesh = len(transducers_ring.Transducers(1, t_radius, t_meshN).ring_points()[0])
@@ -249,7 +249,7 @@ def main():
     #upper transfer matrices and pressure
     transfer_matrixu = m_meth2.t_matrix(t_pointsu, m_points)
     u_matrixu = m_meth2.u_matrix(t_pointsu)
-    p_matrixu = m_meth2.p_matrix(transfer_matrixl, u_matrixl)
+    p_matrixu = m_meth2.p_matrix(transfer_matrixu, u_matrixu)
     
     p[:][:] += p_matrixu[:][:]
     
@@ -317,7 +317,12 @@ def main():
     axc.plot(centerline, height)
     py.show()
     print(centerline)
+    
+    
+    
+    
+    
 
 main()
 
-print("main - Done.")
+print("main test - Done.")

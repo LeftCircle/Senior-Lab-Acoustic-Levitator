@@ -27,7 +27,11 @@ class Matrix_method:
     
     #notation here is bad again. both n and t represent transducers
     def sn(self): #radius of transducer cell
-        return(1 * self.t_radius / self.t_meshN)**2
+        return(2 * self.t_radius / self.t_meshN)**2
+        
+    #area of reflector cell
+    def si(self):
+        return(100 / (5* self.t_meshN))**2
     
     # calculates distance between transducer points (n,t) and measurement points (m)
     # t_points, m_points are 2-D arrays of x,y,z points
@@ -47,6 +51,10 @@ class Matrix_method:
         k = self.omega / self.c
         return self.sn() * (np.exp(-1.j*k*r_nm)) / r_nm
     
+    def t_nr(self, r_nm): #t_nm^TM from matrix method paper
+        k = self.omega / self.c
+        return self.si() * (np.exp(-1.j*k*r_nm)) / r_nm
+    
     # calculates displacement of each cell s_n due to oscillation from sound waves
     def u_n(self):
         return self.amplitude * np.exp(1.j * self.excitation_phase_n)
@@ -57,6 +65,17 @@ class Matrix_method:
         t_m = np.zeros([m_length, t_length], dtype=complex) #m rows, t collumns
         r_nm = self.r_nm_m(t_points, m_points)
         
+        for i in range(m_length): 
+            for k in range(t_length): 
+                t_m[i, k] = self.t_nm(r_nm[i][k]) 
+                
+        return t_m
+    
+    #transfer matrix from bottom transducer to reflector
+    def t_matrix_tr(self, t_points, r_points):
+        m_length = len(r_points[0]) ; t_length = len(t_points[0])
+        t_m = np.zeros([m_length, t_length], dtype = complex)
+        r_nm = self.r_nm_m(t_points, r_points)
         
         for i in range(m_length): 
             for k in range(t_length): 
@@ -64,13 +83,27 @@ class Matrix_method:
                 
         return t_m
     
-    #transfer matrix from bottom transducers to top transducers
-    #t_points are the points in one transducer. t_mesh is the opposite mesh of
-    #36 transducers
-    def t_matrix_tt(self, t_points, t_mesh):
-        m_length = len(t_mesh[0]) ; t_length = len(t_points[0])
+    def t_matrix_rt(self, r_points, t_points):
+        m_length = len(t_points[0]) ; t_length = len(r_points[0])
         t_m = np.zeros([m_length, t_length], dtype = complex)
-        r_nm = self.r_nm_m(t_points, t_mesh)
+        r_nm = self.r_nm_m(r_points, t_points)
+        
+        for i in range(m_length): 
+            for k in range(t_length): 
+                t_m[i, k] = self.t_nr(r_nm[i][k]) 
+                
+        return t_m
+    
+    def t_matrix_rm(self, r_points, m_points):
+        m_length = len(m_points[0]) ; t_length = len(r_points[0])
+        t_m = np.zeros([m_length, t_length], dtype = complex)
+        r_nm = self.r_nm_m(r_points, m_points)
+        
+        for i in range(m_length): 
+            for k in range(t_length): 
+                t_m[i, k] = self.t_nr(r_nm[i][k]) 
+                
+        return t_m
         
     # assembles displacement matrix
     def u_matrix(self, t_points):

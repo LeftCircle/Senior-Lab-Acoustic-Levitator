@@ -10,6 +10,7 @@ import matrix_method
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot, cm
 from mpl_toolkits.mplot3d import Axes3D
+import tiny_lev_positions2 as tlp
       
 #initial condition constants
 ntr = [6,12,18,6,12,18]                                
@@ -23,20 +24,20 @@ r_l = [10.52, 21.35, 30.62]; r_u = r_l
 #h_i = [0, 10, 20, 200, 190, 180]
 #h_l = [0,10,20] ; h_u = [200, 190, 180]
 t_radius = 4.5                # radius of transducer [mm]
-t_meshN = 15                   # number of points in side length of square that represents transducer
-m_meshN = 50 
+t_meshN = 20                   # number of points in side length of square that represents transducer
+m_meshN = 350 
 z_middle = 59.55                  # number of points in side length of square that represents transducer
 #z_middle = 100
-radius_largest_ring = 30    # radius of transducer ring [mm] guess
+radius_largest_ring = 30.62    # radius of transducer ring [mm] guess
 
-omega = 40.e3               # frequency of emitted sound [Hz]
+omega = 2*np.pi*40.e3               # frequency of emitted sound [Hz]
 c = 343.e3                  # wave propogation velocity [mm/s]
 amplitude = 1            # displacement amplitude #also a guess
 amplitude2 = 1
 phase = np.pi                  # excitation phase of displacement
 phase2 = 0
 dens = 1.225e-9             # density of propogation medium [kg/mm^3]
-wavelength = (c/omega)*(1e-3)# wavelength of emitted sounds [mm]     ### TODO find actual numbers for these 2
+wavelength = (c/omega) # wavelength of emitted sounds [mm]
 
 
 t_mesh = len(transducers_ring.Transducers(1, t_radius, t_meshN).ring_points()[0])
@@ -214,10 +215,7 @@ def main():
     m_meth2 = matrix_method.Matrix_method(omega, c, amplitude2, t_mesh, t_radius,
                                          phase2, dens, wavelength)
     
-    m_meth_m = matrix_method.Matrix_method(omega, c, amplitude, t_mesh,
-                                radius_largest_ring, phase, dens, wavelength)
-    m_meth_m2 = matrix_method.Matrix_method(omega, c, amplitude2, t_mesh,
-                                radius_largest_ring, phase2, dens, wavelength)
+
     #calculate the transfer and excitation matrices
     p = np.zeros((len(xyz_m[0][0]),1), dtype = complex)
     
@@ -270,7 +268,7 @@ def main():
                 p_matrix = m_meth.p_matrix(transfer_matrix, u_matrix)
                 
                 p[:][:] += p_matrix[:][:]
-                
+                '''
                 #transducer to transducer to measurement point
                 #matrix method always multiplies by (wpc/leambda)
                 #calculating T^tm (m x n_top) matrix
@@ -287,7 +285,8 @@ def main():
                                                               u_matrix) 
                 
                 p[:][:] += p_matrix[:][:]
-                
+                '''
+                '''
                 #TM RT TR U additon
                 transfer_matrix_rt = m_meth.t_matrix(t_meshp, t_points)
                 t_matrix_tmrt = np.matmul(transfer_matrix, transfer_matrix_rt)
@@ -296,7 +295,7 @@ def main():
                            u_matrix)
                 
                 p[:][:] += p_matrix[:][:]
-                
+                '''
                 '''
                 #third addition from matrix method paper
                 t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
@@ -333,7 +332,7 @@ def main():
                 p_matrix = m_meth2.p_matrix(transfer_matrix, u_matrix)
                                 
                 p[:][:] += p_matrix[:][:] 
-                
+                '''
                 tmpts = half_mesh_t(0)
                 t_meshp = ([tmpts[0]] + [tmpts[1]] + [tmpts[2]])
                 transfer_matrix_tm = m_meth2.t_matrix(t_meshp, m_points)
@@ -344,7 +343,8 @@ def main():
                                                               u_matrix) 
                 
                 p[:][:] += p_matrix[:][:]
-                
+                '''
+                '''
                 #TM RT TR U additon
                 transfer_matrix_ttr = m_meth2.t_matrix(t_meshp, t_points)
                 t_matrix_tmrt = np.matmul(transfer_matrix, transfer_matrix_ttr)
@@ -353,7 +353,7 @@ def main():
                            u_matrix)
                 
                 p[:][:] += p_matrix[:][:]
-                
+                '''
                 '''
                 #third addition from matrix method paper
                 t_m_rmtr = np.matmul(transfer_matrix_rm, transfer_matrix_tt)
@@ -405,14 +405,18 @@ def main():
     Z = np.reshape(xyz_m[2], (xy_size, xy_size))
     
     #print(np.shape(X), np.shape(Z), 'shapes')
-    
+    print('working on plotting')
     fig = pyplot.figure(figsize=(11,7), dpi=100)
-    pyplot.contourf(X, Z, graphing_array, alpha=0.5, cmap=cm.viridis)
+    plt.pcolormesh(X, Z, graphing_array, alpha=0.5, cmap=cm.viridis)
     pyplot.colorbar()
-    pyplot.contour(X, Z, graphing_array, cmap=cm.viridis)
+    #pyplot.contour(X, Z, graphing_array, cmap=cm.viridis)
     #pyplot.streamplot(X, Z, u, v)
     pyplot.xlabel('X')
     pyplot.ylabel('Z');
+    
+    #fitting levitation points to centerline
+    xp  = tlp.Pos(0).lev_pos()[0]
+    yp  = tlp.Pos(0).lev_pos()[1]
     
     #finding the center points used for graphing
     centerline = []
@@ -420,11 +424,21 @@ def main():
     height = np.linspace(h_l[-1], h_u[-1], m_meshN)
     for i in range(len(graphing_array[0])):
         centerline.append(graphing_array[i][midpoint])
+    
+    for i in range(len(height)):
+        for j in range(len(yp)):
+            if height[i] - yp[j] < 0.2 and height[i] - yp[j] > 0:
+                if xp[j] == 0:
+                    xp[j] = centerline[i]
         
     figc, axc = plt.subplots()
     axc.plot(centerline, height)
+    axc.scatter(xp, yp)
     py.show()
-    print(centerline)
+    
+    
+    
+    
 
 main()
 
