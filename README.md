@@ -10,3 +10,4 @@ The code was created using the matrix method for determining the acoustic radiat
 ## Functionality
 
 Currently the code only supports a spherical cap composed of three rings of transducers at three different heights. It also only supports an even number of transducers in each ring. This is due to complications in the matrix method from the transducers being positioned so that they emmit sound at an angle. 
+
