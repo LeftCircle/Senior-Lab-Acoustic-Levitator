@@ -1,6 +1,5 @@
 ![](t_20_m_301_noreflections.png)
 # Senior-Lab-Acoustic-Levitator
-It works!
 
 The following code can be used to calculate the pressure resulting from an array of transducers which are arranged as two spherical caps, where each transducer is pointing towards the center point between the transducer arrays. 
 To run the code, download the files in the TinyLev folder, then open main.py. Adjust t_meshN and m_meshN to raise/lower the number of
