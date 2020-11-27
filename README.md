@@ -17,6 +17,10 @@ I have also written two papers during the development of this code that describe
 
 Currently the code only supports a spherical cap composed of three rings of transducers at three different heights. It also only supports an even number of transducers in each ring. This is due to complications in the matrix method from the transducers being positioned so that they emmit sound at an angle. 
 
+## About The TinyLev
+The TinyLev is an acoustic levitator, and the origin of it can be found [here]
+(https://aip.scitation.org/doi/full/10.1063/1.4989995)
+The main goal of this research was to model the pressure fields between the two spherical caps of transudcers, as this was much more complex than the standard acoustic levitator of one large transducer and a reflecting plane. 
 
 ![](lev_and_schlieren.jpg)
 ![](lev.jpg)
