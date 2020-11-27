@@ -11,7 +11,10 @@ speed up by calculating the pressure matrices in parrallel using CUDA.
 
 The code was created using the matrix method for determining the acoustic radiation force, which can be found [here](https://www.researchgate.net/publication/224254694_Matrix_Method_for_Acoustic_Levitation_Simulation)
 
+I have also written two papers during the development of this code that describe the difficulties in adapting the Matrix Method to an arbitrary configuration. If you would like access to these papers, please contact me at rcato60@gmail.com. If you are on an admissions board and reading this, I have attatched the papers to my application. 
+
 ## Functionality
 
 Currently the code only supports a spherical cap composed of three rings of transducers at three different heights. It also only supports an even number of transducers in each ring. This is due to complications in the matrix method from the transducers being positioned so that they emmit sound at an angle. 
+
 
