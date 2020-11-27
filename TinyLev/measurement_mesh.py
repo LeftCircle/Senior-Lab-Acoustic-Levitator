@@ -24,13 +24,14 @@ half = 3 : used for implementing the directionality of the transducers. This
 '''
 class M_mesh:
     def __init__(self, radius_largest_ring, h_largest_ring, z_middle, m_mesh_n
-                 , half, t_radius):
+                 , half, t_radius, shift=0):
         self.radius_largest_ring = radius_largest_ring
         self.m_mesh_n = m_mesh_n #meshpoints on one axis of rectangle defining mesh between top and bottom transducers
         self.h_largest_ring = h_largest_ring
         self.z_middle = z_middle
         self.half = half #1 for true, 0 for false
         self.t_radius = t_radius #radius of one transducer
+        self.shift = shift
     def m_mesh(self):
         if self.half == 1:
             h_m_mesh_n = self.m_mesh_n
@@ -72,7 +73,7 @@ class M_mesh:
             z = np.linspace(z_start, z_end, h_m_mesh_n)
             
             x_array, z_array = np.meshgrid(x, z)
-            y_array = np.zeros([len(x_array[0]), len(x_array[0])])
+            y_array = np.ones([len(x_array[0]), len(x_array[0])]) * self.shift
             return x_array, y_array, z_array
         
         if self.half == 3: #if working with directionality (may break distance calculations)
